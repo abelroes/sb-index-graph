@@ -25,6 +25,18 @@ indexGraph.neighbors("YourPage")
 
 If lua/runtime/index is unavailable, treat the tool as down — do not improvise with full-space reads.
 
+### Always-on agent skills
+
+Shared protocol: [`agents/PROTOCOL.md`](agents/PROTOCOL.md).
+
+| Client | Template in repo | Typical install |
+|--------|------------------|-----------------|
+| Cursor | `agents/cursor/sb-index-graph/` | User store `skills/sb-index-graph/SKILL.md` |
+| Claude Code | `agents/claude/sb-index-graph/` | `~/.claude/skills/sb-index-graph/` or project `.claude/skills/` |
+| Kimi / Agent Skills | `agents/kimi/…` or `agents/agents-skills/…` | `~/.agents/skills/sb-index-graph/` |
+
+The in-space page `Library/abelroes/sb-index-graph-skill` (`tags: meta/skill`) is for agents already inside SilverBullet; Cursor/Claude/Kimi need the always-on skill above so they invoke MCP `lua` before bulk reads.
+
 ## Develop
 
 ```bash
