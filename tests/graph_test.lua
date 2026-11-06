@@ -32,3 +32,15 @@ local n2 = graph.neighbors("Alpha", {
 assert_eq(n2.neighbors[1].ref, "Beta")
 
 print("OK neighbors")
+
+local p = graph.path("Alpha", "Gamma", fix.edges)
+assert_true(p.ok, "path Alpha->Gamma")
+assert_eq(#p.hops, 2)
+assert_eq(p.hops[1].to, "Beta")
+assert_eq(p.hops[2].to, "Gamma")
+
+local missing = graph.path("Alpha", "NoSuch", fix.edges)
+assert_true(not missing.ok)
+assert_eq(missing.error, "not_found")
+
+print("OK path")
