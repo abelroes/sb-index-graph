@@ -126,4 +126,74 @@ function graph.neighbors(page, edges, opts)
   return { ok = true, page = ref, neighbors = neighbors }
 end
 
+local function buildUndirectedAdj(edges)
+  local adj = {}
+  local function add(a, b, meta)
+    adj[a] = adj[a] or {}
+    adj[a][#adj[a] + 1] = { ref = b, kind = meta.kind, snippet = meta.snippet, page = meta.page }
+  end
+  for _, e in ipairs(edges) do
+    add(e.from, e.to, e)
+    add(e.to, e.from, e)
+  end
+  return adj
+end
+
+function graph.path(from, to, edges, opts)
+  if type(from) ~= "string" or from == "" or type(to) ~= "string" or to == "" then
+    return { ok = false, error = "invalid_page" }
+  end
+  local src = graph.stripPagePos(from)
+  local dst = graph.stripPagePos(to)
+  if src == dst then
+    return { ok = true, from = src, to = dst, hops = {} }
+  end
+  local filtered = graph.collapseCoMentions(graph.filterEdges(edges, opts))
+  local adj = buildUndirectedAdj(filtered)
+  if not adj[src] then
+    return { ok = false, error = "not_found", from = src, to = dst }
+  end
+  local prev = {}
+  local prevEdge = {}
+  local q = { src }
+  local head = 1
+  prev[src] = false
+  while head <= #q do
+    local cur = q[head]
+    head = head + 1
+    for _, nb in ipairs(adj[cur] or {}) do
+      if prev[nb.ref] == nil then
+        prev[nb.ref] = cur
+        prevEdge[nb.ref] = nb
+        if nb.ref == dst then
+          head = #q + 1
+          break
+        end
+        q[#q + 1] = nb.ref
+      end
+    end
+  end
+  if prev[dst] == nil then
+    return { ok = false, error = "not_found", from = src, to = dst }
+  end
+  local stack = {}
+  local node = dst
+  while node ~= src do
+    local e = prevEdge[node]
+    stack[#stack + 1] = {
+      from = prev[node],
+      to = node,
+      kind = e.kind,
+      snippet = e.snippet,
+      page = e.page,
+    }
+    node = prev[node]
+  end
+  local hops = {}
+  for i = #stack, 1, -1 do
+    hops[#hops + 1] = stack[i]
+  end
+  return { ok = true, from = src, to = dst, hops = hops }
+end
+
 return graph
