@@ -9,57 +9,30 @@ description: >-
 
 # managing-learnings
 
-Help the user reach a **useful, agreed** convention for learnings — do not impose one.
+Agree a **minimal** learnings convention — then write short notes the SB index can find.
 
-**Core principle:** Storage layout and type systems are user configuration. Discover or ask; then follow what they accepted.
+**Principles:** KISS, YAGNI, DRY, direct. Prefer SilverBullet primitives over invented systems.
 
-## When to use
+## SilverBullet-native (do this)
 
-- Capture a learning / aprendizado / lesson / decision / preference into SB.
-- Define or change learning **types**.
-- Greenfield (no convention) or brownfield (something already exists).
-
-## When not to use
-
-- Read-only retrieval of existing notes → **sb-index-graph**.
-- User declined to use the second-brain for persistence.
+- **Pages** are markdown files; the **index** (tags, attributes, `[[wiki links]]`, relations) is how agents retrieve them — design for that, not for folder theater.
+- **One tag is enough** to query (`tags: aprendizado`). Add `tag.define` / schemas only if the user wants validation or decorations — not by default (YAGNI).
+- **Types** = a few tags or one attribute (e.g. `type: pitfall`), not parallel trees or PKM frameworks.
+- **Links** (`[[…]]`, `related`) beat copy-paste and duplicate pages (DRY).
+- **Capture shape:** title + one rule/lesson + when it applies + tags + links. No session dumps, no essays, no “industry standard” ontologies.
 
 ## Recipe
 
-### 1. Discover
+1. **Discover** — query/search existing tags/paths/config. Convention found → **brownfield**. Else → **greenfield**.
+2. **Greenfield** — ask outcomes in one short pass; offer **2–3 tiny options** (mostly tags + one home page, not folder taxonomies). Wait for accept. Write only what they chose, including one short config page **at a path they pick**.
+3. **Brownfield** — follow what exists. New types = optional tags/attributes in place. **No silent migrate**, no orphan parallel tree unless they choose it.
+4. **Capture** — read agreed config (or dominant tag) → one short page → stop.
 
-Search/read the space for an existing learnings config or dominant convention (paths, tags, types). If found → **brownfield**. If none → **greenfield**.
-
-### 2. Greenfield
-
-1. Ask what outcomes matter (e.g. retrieve-by-type vs write with low friction) — short questions.
-2. Offer **2–3 lightweight options** (not one “correct” PKM). Options may differ on home location, type list, and page shape; keep each option minimal.
-3. Wait for accept/edit. Do not write durable structure before agreement.
-4. Write only what they accepted, including one **durable config artifact at a path they chose** so future agents can read it instead of guessing.
-
-### 3. Brownfield
-
-1. Follow the existing convention for new notes by default.
-2. If they want types or a redesign: propose an **optional overlay** (e.g. add type tags in place) and/or migration plans as choices.
-3. **No silent migration** and no parallel orphan tree unless they explicitly choose that option.
-
-### 4. Capture after config exists
-
-Read the agreed config → classify with the user if type is unclear → write one note in the agreed shape. Stay minimal (pattern/lesson, not session dump) unless they ask otherwise.
-
-## Rationalizations
-
-| Excuse | Reality |
-|--------|---------|
-| "I'm the knowledge architect — just invent it" | Inventing durable taxonomy without agreement is forbidden. Propose options; wait. |
-| "Industry standard PARA/Zettelkasten" | There is no mandated standard for this space. Offer options tied to their outcomes. |
-| "Reorganize everything; they'll review later" | No mass migrate without explicit confirmation. |
-| "Types don't matter, dump Inbox" | If they asked for types, help them choose types — don't erase the request. |
-| "Config in the git repo is enough" | SB agents need a convention inside the space (or another location **they** choose). |
+Read-only retrieval → **second-brain**. Persistence without agreement → stop and configure first.
 
 ## Red flags — STOP
 
-- Writing folders/tags/templates before accept on greenfield
-- Migrating or renaming brownfield pages without confirmation
-- Single “best” taxonomy presented as mandatory
-- Saving learnings via **sb-index-graph** write-back without this config flow
+- Deep folder/type trees, PARA/Zettel “standards”, or `tag.define` sprawl without ask
+- Long notes, transcript dumps, or duplicate content instead of links
+- Migrating brownfield or writing before accept on greenfield
+- Bypassing this skill via **second-brain** write-back

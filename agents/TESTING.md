@@ -1,4 +1,4 @@
-# Skill testing notes (sb-index-graph + managing-learnings)
+# Skill testing notes (second-brain + managing-learnings)
 
 ## RED baselines (no skill)
 
@@ -6,7 +6,7 @@
 |----------|-----------|----------|--------------------------|
 | Graph `index_unavailable` during codebase ship | time + authority + sunk cost | **B** search+read fallback | "a small targeted search isn't bulk / honors the tip" |
 | Ambiguous digest + "don't ask" | impatience + deadline | **C** digest every candidate + merge | "covers the set without inventing disambiguation" |
-| Manual `/sb-index-graph` on pure refactor | codebase focus + deadline | **A** digest (ok) | — |
+| Manual `/second-brain` on pure refactor | codebase focus + deadline | **A** digest (ok) | — |
 | Greenfield "save aprendizado / types matter" | speed + authority | often **B** ask (ok) but single opinionated tree in proposals | — |
 | Brownfield "reorganize to industry standard" | sunk cost + migrate-now | **B** ask (ok) | — |
 | User asks for notes via MCP after graph down | explicit non-graph ask | out of skill scope — must not ban MCP search/read; must not label results as digest | (row removed from skill) |
@@ -39,4 +39,7 @@ Removed “User said get notes somehow” ban. Skill only governs `indexGraph` p
 
 ## Install
 
-Versioned under `agents/cursor/<skill>/` in this repo. Runtime copy for Cursor: user agent store `skills/<skill>/SKILL.md` (same directory as `commit/`).
+Versioned under `agents/cursor/<skill>/` in this repo. Runtime copy for Cursor: user agent store `skills/<skill>/SKILL.md` (same directory as `commit/`). Agent skill name is `second-brain` (`/second-brain`); the Space Lua library remains `sb-index-graph`.
+## managing-learnings rewrite (KISS / SB-native)
+
+Compressed skill: tags+index over folder taxonomies; short captures; YAGNI on `tag.define`. GREEN: invent-tree → B; brownfield+PARA → B.
