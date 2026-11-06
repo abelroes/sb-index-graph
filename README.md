@@ -36,7 +36,7 @@ Shared notes: [`agents/PROTOCOL.md`](agents/PROTOCOL.md). Testing: [`agents/TEST
 
 | Client | Templates | Typical install |
 |--------|-----------|-----------------|
-| Cursor | `agents/cursor/<skill>/` | User store `skills/<skill>/SKILL.md` |
+| Cursor | `agents/cursor/<skill>/` (versioned) | Runtime: agent store `skills/<skill>/SKILL.md` (alongside `commit/`, etc.) |
 | Claude Code | `agents/claude/<skill>/` | `~/.claude/skills/<skill>/` |
 | Kimi / Agent Skills | `agents/kimi/…` or `agents/agents-skills/…` | `~/.agents/skills/<skill>/` |
 
