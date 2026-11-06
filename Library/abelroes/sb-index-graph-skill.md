@@ -19,7 +19,7 @@ Retrieve a semantically closed subgraph via `indexGraph` before reading pages.
 
 ## When not to use
 
-- MCP `lua` / Runtime API unavailable → **stop** and report unavailable. Do **not** fall back to `search`+`read` (including a “small” search) to approximate this skill.
+- MCP `lua` / Runtime API unavailable → **stop** this retrieval path and report unavailable. Do **not** present `search`+`read` as an `indexGraph` digest. Other MCP use the user asks for outside this path is out of scope here.
 - Do not use Graphify or external repo indexing for this space.
 
 ## Protocol
