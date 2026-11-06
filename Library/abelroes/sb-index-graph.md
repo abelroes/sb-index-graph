@@ -4,6 +4,7 @@ tags: meta/library
 description: Structured retrieval over the SilverBullet relation/tag index for AI agents (neighbors, path, digest).
 files:
 - sb-index-graph-skill.md
+share.uri: "github:abelroes/sb-index-graph/PLUG.md"
 ---
 
 # sb-index-graph
@@ -11,6 +12,12 @@ files:
 Second-brain retrieval for agents: query the **index graph** (relations + tags), not the Graph View UI.
 
 Requires Runtime API (MCP `lua`). If the runtime or index is unavailable, calls fail explicitly.
+
+## Install
+
+1. Run **`Library: Install`** (or Libraries manager → Install).
+2. URI: `github:abelroes/sb-index-graph/PLUG.md`
+3. **System: Reload**.
 
 ## API
 

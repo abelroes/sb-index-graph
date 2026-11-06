@@ -39,7 +39,7 @@ Removed “User said get notes somehow” ban. Skill only governs `indexGraph` p
 
 ## Install
 
-Versioned under `agents/cursor/<skill>/` in this repo. Runtime copy for Cursor: user agent store `skills/<skill>/SKILL.md` (same directory as `commit/`). Agent skill name is `second-brain` (`/second-brain`); the Space Lua library remains `sb-index-graph`.
+Canonical under `skills/<skill>/` for `npx skills add`. Mirrors under `agents/`. Agent skill name is `second-brain` (`/second-brain`); the Space Lua library remains `sb-index-graph`.
 ## managing-learnings rewrite (KISS / SB-native)
 
 Compressed skill: tags+index over folder taxonomies; short captures; YAGNI on `tag.define`. GREEN: invent-tree → B; brownfield+PARA → B.

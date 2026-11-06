@@ -1,55 +1,63 @@
 # sb-index-graph
 
-SilverBullet Library: structured retrieval over the **relation/tag index** for AI agents (MCP `lua`).
+Lets AI agents pull a small, linked slice of your SilverBullet notes (via tags and page links) instead of scanning the whole space.
 
-Not Graphify. Not the Graph View UI. Not a vector RAG stack.
-
-## Requirements
-
-- SilverBullet with **Runtime API** enabled on the space (required for MCP `lua`)
-- MCP connected (Desktop or multi-space `/.mcp`)
+Needs Runtime API on the space and an MCP connection to SilverBullet. This is not the Graph View UI.
 
 ## Install
 
-1. Publish/install this library to `Library/abelroes/sb-index-graph` (Library Manager / Share from this repo’s `Library/abelroes/` pages).
-2. Ensure `Library/abelroes/sb-index-graph-skill.md` is present (`files` in the library frontmatter).
-3. Run **System: Reload**.
+1. In SilverBullet, run **`Library: Install`** (or open the Libraries manager → **Install**).
+2. Paste this URI:
 
-## Agent usage
-
-```lua
-indexGraph.digest("YourPageOrTag")
-indexGraph.path("PageA", "PageB")
-indexGraph.neighbors("YourPage")
+```text
+github:abelroes/sb-index-graph/PLUG.md
 ```
 
-If lua/runtime/index is unavailable, treat the tool as down — do not improvise with full-space reads.
+3. Run **System: Reload**.
+4. Confirm your agent can reach the space over MCP.
 
-### Always-on agent skills (English)
+Same pattern as other SB plugs/libraries (`Library: Install` + `github:…/PLUG.md`).
 
-Shared notes: [`agents/PROTOCOL.md`](agents/PROTOCOL.md). Testing: [`agents/TESTING.md`](agents/TESTING.md).
+## Agent skills
 
-| Skill | Purpose |
-|-------|---------|
-| `second-brain` (`/second-brain`) | Closed-subgraph retrieval via `indexGraph`; fail closed; honor manual invoke during codebase work |
-| `managing-learnings` | Configure/capture learnings and types; greenfield/brownfield; non-opinionated |
+Canonical copies live under [`skills/`](skills/) (`second-brain`, `managing-learnings`).
 
-| Client | Templates | Typical install |
-|--------|-----------|-----------------|
-| Cursor | `agents/cursor/<skill>/` (versioned) | Runtime: agent store `skills/<skill>/SKILL.md` (alongside `commit/`, etc.) |
-| Claude Code | `agents/claude/<skill>/` | `~/.claude/skills/<skill>/` |
-| Kimi / Agent Skills | `agents/kimi/…` or `agents/agents-skills/…` | `~/.agents/skills/<skill>/` |
+```bash
+# from a clone of this repo
+npx skills add . -g --skill '*' -a '*' -y
 
-In-space `Library/abelroes/sb-index-graph-skill` (`tags: meta/skill`) is for agents already inside SilverBullet. Always-on copies make Cursor/Claude/Kimi invoke MCP `lua` before bulk reads and configure learnings without imposing a taxonomy.
+# or from GitHub (needs clone access to the repo)
+npx skills add abelroes/sb-index-graph -g --skill '*' -a '*' -y
+```
+
+| Skill | When you use it |
+|-------|-----------------|
+| `second-brain` (`/second-brain`) | Ask the agent to use your second-brain — even during coding |
+| `managing-learnings` | Save or organize learnings without inventing a heavy note system |
+
+Mirrors under `agents/` are optional. In SilverBullet, agents can also follow `Library/abelroes/sb-index-graph-skill`.
+
+### What to say (examples)
+
+Your notes stay normal SilverBullet pages: `[[wiki links]]`, tags in frontmatter, short linked learnings.
+
+| You want… | Example prompt |
+|-----------|----------------|
+| Context from a topic | “`/second-brain` — what do my notes say about error handling?” |
+| Coding with your preferences | “`/second-brain` — use my way of working while we refactor this” |
+| How two ideas connect | “How are page A and page B connected in my notes?” |
+| Save a lesson | “Save this as an aprendizado” (skill will ask how you store learnings if that isn’t set yet) |
+
+The agent should load a tight neighborhood of related pages first, then open only what it still needs. If the index/runtime is down, it should say so — not pretend a full-space search was that retrieval.
+
+### Learnings (optional)
+
+Keep learnings short and tagged so the index can find them (e.g. `#aprendizado`). Prefer a few tags and links over deep folder trees. `managing-learnings` helps you agree that convention once (new space or existing), then write one short note at a time.
 
 ## Develop
+
+Canonical library page for Share/Install: [`PLUG.md`](PLUG.md) (mirrored under `Library/abelroes/` for local paths). Keep Space Lua in sync with `src/graph.lua`.
 
 ```bash
 luajit -e 'package.path = "./?.lua;./?/init.lua;" .. package.path; dofile("tests/graph_test.lua")'
 ```
-
-Pure algorithms: `src/graph.lua`. Keep Space Lua copies in sync when changing behavior.
-
-## Design
-
-See `docs/superpowers/specs/2026-11-06-sb-index-graph-design.md`.
