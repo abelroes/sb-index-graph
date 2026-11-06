@@ -31,7 +31,7 @@ Shared notes: [`agents/PROTOCOL.md`](agents/PROTOCOL.md). Testing: [`agents/TEST
 
 | Skill | Purpose |
 |-------|---------|
-| `sb-index-graph` | Closed-subgraph retrieval; fail closed; honor manual invoke during codebase work |
+| `second-brain` (`/second-brain`) | Closed-subgraph retrieval via `indexGraph`; fail closed; honor manual invoke during codebase work |
 | `managing-learnings` | Configure/capture learnings and types; greenfield/brownfield; non-opinionated |
 
 | Client | Templates | Typical install |

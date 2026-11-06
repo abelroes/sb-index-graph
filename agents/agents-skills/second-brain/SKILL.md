@@ -1,15 +1,18 @@
 ---
-name: sb-index-graph
+name: second-brain
 description: >-
-  Use when the user invokes this skill or second-brain/SilverBullet context may
-  help (including during pure codebase work); when answering from SB notes,
-  aprendizados, decisions, or preferences; when finding how notes connect; or
-  when tempted to approximate indexGraph with bulk search/read after it failed.
+  Use when the user invokes /second-brain or this skill; when second-brain or
+  SilverBullet context may help (including during pure codebase work); when
+  answering from SB notes, aprendizados, decisions, or preferences; when finding
+  how notes connect; or when tempted to approximate indexGraph with bulk
+  search/read after it failed.
 ---
 
-# sb-index-graph
+# second-brain
 
 Retrieve a semantically closed subgraph from SilverBullet via `indexGraph` before reading notes.
+
+The Space Lua library remains `sb-index-graph` (`indexGraph.*`). This skill is the agent-facing name and invoke (`/second-brain`).
 
 **Core principle:** When following this skill’s retrieval path, graph/runtime down means stop approximating that path with search+read. Manual invoke still applies during codebase work.
 
@@ -17,7 +20,7 @@ Retrieve a semantically closed subgraph from SilverBullet via `indexGraph` befor
 
 ## When to use
 
-- User attaches/invokes this skill, `/sb-index-graph`, or asks to use the second-brain — even if the main task is code.
+- User attaches/invokes this skill, `/second-brain`, or asks to use the second-brain — even if the main task is code.
 - Questions answered from SB knowledge, connections between notes, or picking which pages matter.
 
 ## When not to use
@@ -51,5 +54,5 @@ indexGraph.digest("error-handling")
 
 - Presenting search/read as an `indexGraph` digest after `index_unavailable`
 - Picking or merging ambiguous candidates silently
-- Ignoring an explicit second-brain invoke during coding
+- Ignoring an explicit `/second-brain` invoke during coding
 - Writing aprendizados pages without **managing-learnings** config
