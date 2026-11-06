@@ -1,47 +1,54 @@
 ---
 name: sb-index-graph
 description: >-
-  Retrieves a semantically closed subgraph from the user's SilverBullet
-  second-brain via MCP lua (indexGraph.digest/path/neighbors) before reading
-  notes. Use when answering from SilverBullet knowledge, aprendizados,
-  decisions, preferences, note connections, or when the user mentions
-  second-brain, SilverBullet, or SB notes.
+  Use when the user invokes this skill or second-brain/SilverBullet context may
+  help (including during pure codebase work); when answering from SB notes,
+  aprendizados, decisions, or preferences; when finding how notes connect; or
+  when tempted to bulk search/read the space because indexGraph failed.
 ---
 
-# sb-index-graph (Cursor)
+# sb-index-graph
 
-Operationalize the SilverBullet second-brain. The retrieval engine is the SB library `indexGraph`; this skill is the always-on protocol for Cursor.
+Retrieve a semantically closed subgraph from SilverBullet via `indexGraph` before reading notes.
+
+**Core principle:** Graph/runtime down means stop — do not approximate with search+read. Manual invoke still applies during codebase work.
 
 ## When to use
 
-- Answering from the user’s SilverBullet second-brain (notes, aprendizados, decisions, preferences).
-- Finding how two notes connect.
-- Choosing which pages matter without listing or reading the whole space.
+- User attaches/invokes this skill, `/sb-index-graph`, or asks to use the second-brain — even if the main task is code.
+- Questions answered from SB knowledge, connections between notes, or picking which pages matter.
 
 ## When not to use
 
-- MCP `lua` / Runtime API unavailable → **stop** and report the tool unavailable. Do **not** fall back to bulk `search`+`read` to approximate graph retrieval.
-- Pure codebase questions with no SB context → use normal code tools; do not force `indexGraph`.
+- No SB context and user did not invoke this skill → normal code tools only.
+- MCP `lua` / Runtime API unavailable → report unavailable and stop graph retrieval.
 
 ## Protocol
 
-1. Ensure SilverBullet MCP is connected; prefer the space that holds the second-brain.
-2. Call via MCP `lua`:
-   - `indexGraph.digest(anchor)` — default entry (page name, user tag, or disambiguating substring).
-   - `indexGraph.path(a, b)` — when the question is specifically about a connection.
-   - `indexGraph.neighbors(page)` — local context around one page.
-3. If `ok == false` and `error == "ambiguous"` → ask the user or pick a clearer anchor from `candidates`; do not guess.
-4. If `ok == false` and `error == "index_unavailable"` (or lua/runtime failed) → report unavailable; stop.
-5. Treat `nodes`, `edges`, `affinityTags`, and snippets as primary evidence.
-6. MCP `read` only for a **specific** node when snippets are insufficient — driven by the digest, not by reading everything.
-7. Optional write-back: MCP `write`/`edit` a lessons page only when the user asks to persist; keep format minimal (pattern, not project dump).
-
-## Example lua
+1. Prefer the MCP space that holds the second-brain.
+2. Default: `indexGraph.digest(anchor)` (page name, tag, or substring). Use `path(a,b)` for connections; `neighbors(page)` for local context.
+3. `ok == false` + `ambiguous` → disambiguate with the user (or a clearer anchor). **Do not** guess one candidate. **Do not** digest every candidate and merge to avoid asking.
+4. `ok == false` + `index_unavailable` (or lua/runtime failed) → report unavailable; continue non-SB work if any. **Stop.**
+5. Evidence = `nodes` / `edges` / `affinityTags` / snippets. MCP `read` only for a specific node when snippets are insufficient.
+6. Persistence of new learnings → use **managing-learnings** (do not invent storage here).
 
 ```lua
-indexGraph.digest("aprendizado")
+indexGraph.digest("error-handling")
 ```
 
-```lua
-indexGraph.path("Software Engineer/AI/Aprendizados", "Software Engineer/AI/AGENTS")
-```
+## Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "Small search isn't bulk" | Any search+read stand-in for a closed subgraph is forbidden when graph/runtime failed. |
+| "User said get notes somehow" | Waiver does not recreate the index. Report down; retry later. |
+| "Don't ask — digest all candidates" | That skips disambiguation and mixes unrelated neighborhoods. |
+| "Pure codebase — skip manual invoke" | User invoke means run digest (or report unavailable). |
+| "Skill not loaded so search instead" | Missing skill ≠ permission to approximate. |
+
+## Red flags — STOP
+
+- `search`/`read` loops after `index_unavailable`
+- Picking or merging ambiguous candidates silently
+- Ignoring an explicit second-brain invoke during coding
+- Writing aprendizados pages without **managing-learnings** config

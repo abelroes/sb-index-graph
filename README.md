@@ -25,17 +25,22 @@ indexGraph.neighbors("YourPage")
 
 If lua/runtime/index is unavailable, treat the tool as down — do not improvise with full-space reads.
 
-### Always-on agent skills
+### Always-on agent skills (English)
 
-Shared protocol: [`agents/PROTOCOL.md`](agents/PROTOCOL.md).
+Shared notes: [`agents/PROTOCOL.md`](agents/PROTOCOL.md). Testing: [`agents/TESTING.md`](agents/TESTING.md).
 
-| Client | Template in repo | Typical install |
-|--------|------------------|-----------------|
-| Cursor | `agents/cursor/sb-index-graph/` | User store `skills/sb-index-graph/SKILL.md` |
-| Claude Code | `agents/claude/sb-index-graph/` | `~/.claude/skills/sb-index-graph/` or project `.claude/skills/` |
-| Kimi / Agent Skills | `agents/kimi/…` or `agents/agents-skills/…` | `~/.agents/skills/sb-index-graph/` |
+| Skill | Purpose |
+|-------|---------|
+| `sb-index-graph` | Closed-subgraph retrieval; fail closed; honor manual invoke during codebase work |
+| `managing-learnings` | Configure/capture learnings and types; greenfield/brownfield; non-opinionated |
 
-The in-space page `Library/abelroes/sb-index-graph-skill` (`tags: meta/skill`) is for agents already inside SilverBullet; Cursor/Claude/Kimi need the always-on skill above so they invoke MCP `lua` before bulk reads.
+| Client | Templates | Typical install |
+|--------|-----------|-----------------|
+| Cursor | `agents/cursor/<skill>/` | User store `skills/<skill>/SKILL.md` |
+| Claude Code | `agents/claude/<skill>/` | `~/.claude/skills/<skill>/` |
+| Kimi / Agent Skills | `agents/kimi/…` or `agents/agents-skills/…` | `~/.agents/skills/<skill>/` |
+
+In-space `Library/abelroes/sb-index-graph-skill` (`tags: meta/skill`) is for agents already inside SilverBullet. Always-on copies make Cursor/Claude/Kimi invoke MCP `lua` before bulk reads and configure learnings without imposing a taxonomy.
 
 ## Develop
 

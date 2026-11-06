@@ -1,34 +1,36 @@
 ---
 name: Library/abelroes/sb-index-graph-skill
 tags: meta/skill
-description: Retrieve a semantically closed subgraph from the SilverBullet index before reading pages. Use indexGraph.digest/path/neighbors via MCP lua.
+description: >-
+  Use when answering from this space’s knowledge, finding how notes connect,
+  choosing which pages matter, or when tempted to bulk search/read because
+  indexGraph failed.
 ---
 
 # Skill: Index graph retrieval
 
+Retrieve a semantically closed subgraph via `indexGraph` before reading pages.
+
 ## When to use
 
-- Answering questions from this SilverBullet space’s knowledge.
+- Answering from this space’s knowledge.
 - Finding how two notes connect.
 - Deciding which pages matter without listing or reading the whole space.
 
 ## When not to use
 
-- If MCP `lua` / Runtime API is unavailable: **stop** and report the tool unavailable. Do not fall back to bulk `search`+`read` to approximate this skill.
+- MCP `lua` / Runtime API unavailable → **stop** and report unavailable. Do **not** fall back to `search`+`read` (including a “small” search) to approximate this skill.
 - Do not use Graphify or external repo indexing for this space.
 
 ## Protocol
 
-1. Call `indexGraph.digest(anchor)` via MCP `lua`, where `anchor` is a page name, a user tag, or a disambiguating substring.
-2. If `ok` is false and `error` is `ambiguous`, pick from `candidates` with the user or a clearer anchor; do not guess.
-3. If `ok` is false and `error` is `index_unavailable` or runtime failed: report unavailable.
-4. Use the returned `nodes`, `edges`, `affinityTags`, and snippets as primary evidence.
-5. Call `indexGraph.path(a, b)` when the question is specifically about a connection.
-6. Call `indexGraph.neighbors(page)` for local context around one page.
-7. Use MCP `read` only for a specific node when indexed snippets are insufficient for that node — driven by the digest, not by reading everything.
-8. Optional write-back: MCP `write`/`edit` a lessons page only when the user wants persistence; keep format minimal.
-
-## Example lua
+1. Call `indexGraph.digest(anchor)` (page name, user tag, or substring).
+2. `ambiguous` → clarify with the user or a clearer anchor; do **not** guess; do **not** digest every candidate and merge.
+3. `index_unavailable` or runtime failed → report unavailable; stop.
+4. Use `nodes`, `edges`, `affinityTags`, and snippets as primary evidence.
+5. `indexGraph.path(a, b)` for connection questions; `indexGraph.neighbors(page)` for local context.
+6. MCP `read` only for a specific node when snippets are insufficient.
+7. Persisting new learnings is **not** defined here — agree storage/types with the user (always-on skill `managing-learnings` outside SB) before writing.
 
 ```lua
 indexGraph.digest("project")
