@@ -196,4 +196,183 @@ function graph.path(from, to, edges, opts)
   return { ok = true, from = src, to = dst, hops = hops }
 end
 
+-- Structural tags never define affinity: `#page` is implied and `#meta`/`#meta/*`
+-- describe the page itself rather than its subject.
+function graph.userTags(tags)
+  local set = {}
+  if not tags then return set end
+  for _, t in ipairs(tags) do
+    local name = tostring(t)
+    if name ~= "page" and name ~= "meta" and not name:match("^meta/") then
+      set[name] = true
+    end
+  end
+  return set
+end
+
+local function mergeTags(into, tags)
+  for t in pairs(graph.userTags(tags)) do
+    into[t] = true
+  end
+end
+
+local function sharesAny(a, b)
+  for t in pairs(a) do
+    if b[t] then return true end
+  end
+  return false
+end
+
+local function pageByName(pages)
+  local m = {}
+  for _, p in ipairs(pages or {}) do
+    m[p.name] = p
+  end
+  return m
+end
+
+local function pairKey(a, b, kind)
+  if a > b then a, b = b, a end
+  return a .. "\0" .. b .. "\0" .. kind
+end
+
+function graph.resolveAnchor(anchor, pages)
+  if type(anchor) ~= "string" or anchor == "" then
+    return { ok = false, error = "invalid_anchor" }
+  end
+  local byName = pageByName(pages)
+  if byName[anchor] then
+    return { ok = true, mode = "page", page = anchor, pages = { anchor } }
+  end
+  local tagHits = {}
+  for _, p in ipairs(pages or {}) do
+    if graph.userTags(p.tags)[anchor] then
+      tagHits[#tagHits + 1] = p.name
+    end
+  end
+  if #tagHits > 0 then
+    table.sort(tagHits)
+    return { ok = true, mode = "tag", pages = tagHits, tag = anchor }
+  end
+  local needle = anchor:lower()
+  local subs = {}
+  for _, p in ipairs(pages or {}) do
+    if p.name:lower():find(needle, 1, true) then
+      subs[#subs + 1] = p.name
+    end
+  end
+  if #subs == 1 then
+    return { ok = true, mode = "page", page = subs[1], pages = { subs[1] } }
+  elseif #subs == 0 then
+    return { ok = false, error = "not_found" }
+  end
+  table.sort(subs)
+  return { ok = false, error = "ambiguous", candidates = subs }
+end
+
+-- Digest = fixed point of tag-affinity admission from the resolved anchor(s).
+-- A neighbor joins when it shares a user tag with the affinity set or when the
+-- connecting edge is a user predicate; admitted tags widen the affinity set.
+-- No hop or page quotas: closure ends when nothing new is admissible.
+function graph.digest(anchor, pages, edges, opts)
+  local resolved = graph.resolveAnchor(anchor, pages)
+  if not resolved.ok then
+    return { ok = false, error = resolved.error, candidates = resolved.candidates }
+  end
+  local byName = pageByName(pages)
+  local seeds = resolved.pages
+  local affinity = {}
+  for _, name in ipairs(seeds) do
+    local p = byName[name]
+    if p then mergeTags(affinity, p.tags) end
+  end
+
+  local filtered = graph.collapseCoMentions(graph.filterEdges(edges, opts))
+  local adj = buildUndirectedAdj(filtered)
+  local included = {}
+  local queue = {}
+  for _, name in ipairs(seeds) do
+    included[name] = true
+    queue[#queue + 1] = name
+  end
+
+  local head = 1
+  -- Fixed point: a node rejected now may become admissible once another
+  -- admission widens the affinity set, so keep rescanning until stable.
+  local changed = true
+  while changed do
+    changed = false
+    while head <= #queue do
+      local cur = queue[head]
+      head = head + 1
+      for _, nb in ipairs(adj[cur] or {}) do
+        if not included[nb.ref] then
+          local target = byName[nb.ref]
+          local ttags = graph.userTags(target and target.tags)
+          if sharesAny(ttags, affinity) or graph.isUserPredicate(nb.kind) then
+            included[nb.ref] = true
+            queue[#queue + 1] = nb.ref
+            for t in pairs(ttags) do affinity[t] = true end
+            changed = true
+          end
+        end
+      end
+    end
+    head = 1
+  end
+
+  -- Evidence = induced subgraph edges, deduped by endpoints+kind.
+  local usedEdges = {}
+  local seen = {}
+  for _, e in ipairs(filtered) do
+    if e.from ~= e.to and included[e.from] and included[e.to] then
+      local key = pairKey(e.from, e.to, e.kind)
+      if not seen[key] then
+        seen[key] = true
+        usedEdges[#usedEdges + 1] = {
+          from = e.from,
+          to = e.to,
+          kind = e.kind,
+          snippet = e.snippet,
+          page = e.page,
+        }
+      end
+    end
+  end
+  table.sort(usedEdges, function(a, b)
+    if a.from == b.from then
+      if a.to == b.to then return a.kind < b.kind end
+      return a.to < b.to
+    end
+    return a.from < b.from
+  end)
+
+  local nodes = {}
+  for name in pairs(included) do
+    local p = byName[name]
+    local tags = {}
+    for t in pairs(graph.userTags(p and p.tags)) do tags[#tags + 1] = t end
+    table.sort(tags)
+    nodes[#nodes + 1] = { ref = name, tags = tags, dangling = p == nil }
+  end
+  table.sort(nodes, function(a, b) return a.ref < b.ref end)
+
+  local affinityTags = {}
+  for t in pairs(affinity) do affinityTags[#affinityTags + 1] = t end
+  table.sort(affinityTags)
+
+  return {
+    ok = true,
+    seed = {
+      mode = resolved.mode,
+      pages = seeds,
+      tag = resolved.tag,
+      page = resolved.page,
+    },
+    nodes = nodes,
+    edges = usedEdges,
+    affinityTags = affinityTags,
+  }
+end
+
 return graph
