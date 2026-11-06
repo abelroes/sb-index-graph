@@ -44,3 +44,89 @@ assert_true(not missing.ok)
 assert_eq(missing.error, "not_found")
 
 print("OK path")
+
+-- userTags drops structural tags
+local ut = graph.userTags({ "page", "meta", "meta/label", "project" })
+assert_true(ut["project"])
+assert_true(ut["page"] == nil)
+assert_true(ut["meta"] == nil)
+assert_true(ut["meta/label"] == nil)
+assert_eq(next(graph.userTags(nil)), nil)
+
+-- resolveAnchor
+local r = graph.resolveAnchor("Alpha", fix.pages)
+assert_true(r.ok)
+assert_eq(r.mode, "page")
+assert_eq(r.page, "Alpha")
+
+local byTag = graph.resolveAnchor("project", fix.pages)
+assert_true(byTag.ok)
+assert_eq(byTag.mode, "tag")
+assert_eq(#byTag.pages, 2)
+assert_eq(byTag.tag, "project")
+assert_eq(byTag.pages[1], "Alpha")
+assert_eq(byTag.pages[2], "Beta")
+
+local bySubstring = graph.resolveAnchor("Bet", fix.pages)
+assert_true(bySubstring.ok)
+assert_eq(bySubstring.mode, "page")
+assert_eq(bySubstring.page, "Beta")
+
+local missingAnchor = graph.resolveAnchor("NoPage", fix.pages)
+assert_true(not missingAnchor.ok)
+assert_eq(missingAnchor.error, "not_found")
+
+local badAnchor = graph.resolveAnchor("", fix.pages)
+assert_true(not badAnchor.ok)
+assert_eq(badAnchor.error, "invalid_anchor")
+
+-- digest from a page anchor
+local d = graph.digest("Alpha", fix.pages, fix.edges)
+assert_true(d.ok, "digest ok")
+local nodeSet = {}
+for _, n in ipairs(d.nodes) do nodeSet[n.ref] = true end
+-- Alpha (#project) -> Beta (#project) via mention (shared tag)
+assert_true(nodeSet["Alpha"])
+assert_true(nodeSet["Beta"])
+-- Delta admitted via user predicate dependsOn even without shared tags
+assert_true(nodeSet["Delta"])
+-- Gamma is #journal only, connected via Beta mention but shares no affinity tag with seed {project}
+-- and edge Beta->Gamma is structural mention → NOT admitted
+assert_true(nodeSet["Gamma"] == nil, "Gamma outside affinity closure")
+assert_eq(d.seed.mode, "page")
+assert_eq(d.seed.page, "Alpha")
+assert_eq(#d.nodes, 3)
+assert_eq(#d.affinityTags, 1)
+assert_eq(d.affinityTags[1], "project")
+
+-- digest from a tag anchor seeds every page carrying it
+local dTag = graph.digest("project", fix.pages, fix.edges)
+assert_true(dTag.ok)
+assert_eq(dTag.seed.mode, "tag")
+assert_eq(#dTag.seed.pages, 2)
+
+local dMissing = graph.digest("NoPage", fix.pages, fix.edges)
+assert_true(not dMissing.ok)
+assert_eq(dMissing.error, "not_found")
+
+-- fixed point: Late is only admissible once Bridge widened the affinity set
+local fixPoint = {
+  pages = {
+    { name = "Root", tags = { "page", "x" } },
+    { name = "Late", tags = { "page", "y" } },
+    { name = "Bridge", tags = { "page", "y" } },
+  },
+  edges = {
+    { from = "Root", to = "Late", kind = "mention", toTag = "page", page = "Root" },
+    { from = "Root", to = "Bridge", kind = "dependsOn", toTag = "page", page = "Root" },
+  },
+}
+local dFixed = graph.digest("Root", fixPoint.pages, fixPoint.edges)
+assert_true(dFixed.ok)
+local fixedSet = {}
+for _, n in ipairs(dFixed.nodes) do fixedSet[n.ref] = true end
+assert_true(fixedSet["Bridge"], "Bridge admitted by user predicate")
+assert_true(fixedSet["Late"], "Late admitted after affinity grew to y")
+assert_eq(#dFixed.affinityTags, 2)
+
+print("OK digest")
