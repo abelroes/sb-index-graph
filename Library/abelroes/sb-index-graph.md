@@ -408,9 +408,10 @@ local function loadRelations(opts)
   if not index.isAvailable() then
     return nil, "index_unavailable"
   end
-  local rows = {}
-  for r in index.relations() do
-    rows[#rows + 1] = {
+  -- opts reserved for graph.filterEdges; load all then let graph filter
+  local rows = query[[
+    from r = index.relations()
+    select {
       from = r.from,
       to = r.to,
       kind = r.kind,
@@ -420,13 +421,17 @@ local function loadRelations(opts)
       snippet = r.snippet,
       via = r.via,
     }
-  end
+  ]]
   return rows
 end
 
 local function loadPages()
+  local rows = query[[
+    from p = index.pages()
+    select { name = p.name, tags = p.tags, tag = p.tag }
+  ]]
   local pages = {}
-  for p in index.pages() do
+  for _, p in ipairs(rows or {}) do
     pages[#pages + 1] = { name = p.name, tags = p.tags or { p.tag } }
   end
   return pages
