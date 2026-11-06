@@ -72,6 +72,21 @@ assert_true(bySubstring.ok)
 assert_eq(bySubstring.mode, "page")
 assert_eq(bySubstring.page, "Beta")
 
+-- "Al" matches Alpha and Alpine (deterministic fixture collision)
+local amb = graph.resolveAnchor("Al", fix.pages)
+assert_true(not amb.ok)
+assert_eq(amb.error, "ambiguous")
+assert_eq(#amb.candidates, 2)
+assert_eq(amb.candidates[1], "Alpha")
+assert_eq(amb.candidates[2], "Alpine")
+
+local dAmb = graph.digest("Al", fix.pages, fix.edges)
+assert_true(not dAmb.ok)
+assert_eq(dAmb.error, "ambiguous")
+assert_eq(#dAmb.candidates, 2)
+assert_eq(dAmb.candidates[1], "Alpha")
+assert_eq(dAmb.candidates[2], "Alpine")
+
 local missingAnchor = graph.resolveAnchor("NoPage", fix.pages)
 assert_true(not missingAnchor.ok)
 assert_eq(missingAnchor.error, "not_found")
@@ -128,5 +143,26 @@ for _, n in ipairs(dFixed.nodes) do fixedSet[n.ref] = true end
 assert_true(fixedSet["Bridge"], "Bridge admitted by user predicate")
 assert_true(fixedSet["Late"], "Late admitted after affinity grew to y")
 assert_eq(#dFixed.affinityTags, 2)
+
+-- Opposite directed user-predicate edges must both survive digest evidence
+local bothWays = {
+  pages = {
+    { name = "A", tags = { "page", "t" } },
+    { name = "B", tags = { "page", "t" } },
+  },
+  edges = {
+    { from = "A", to = "B", kind = "dependsOn", toTag = "page", page = "A", snippet = "A→B" },
+    { from = "B", to = "A", kind = "dependsOn", toTag = "page", page = "B", snippet = "B→A" },
+  },
+}
+local dBoth = graph.digest("A", bothWays.pages, bothWays.edges)
+assert_true(dBoth.ok)
+assert_eq(#dBoth.edges, 2, "both directed dependsOn edges kept")
+local dirs = {}
+for _, e in ipairs(dBoth.edges) do
+  dirs[e.from .. "->" .. e.to] = e.kind
+end
+assert_eq(dirs["A->B"], "dependsOn")
+assert_eq(dirs["B->A"], "dependsOn")
 
 print("OK digest")

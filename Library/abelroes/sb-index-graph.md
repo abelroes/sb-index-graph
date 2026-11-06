@@ -255,9 +255,15 @@ local function pageByName(pages)
   return m
 end
 
-local function pairKey(a, b, kind)
-  if a > b then a, b = b, a end
-  return a .. "\0" .. b .. "\0" .. kind
+-- Undirected kinds (co-mention) collapse endpoint order; directed kinds keep
+-- both A→B and B→A when both exist for the same predicate.
+local function evidenceKey(e)
+  if e.undirected then
+    local a, b = e.from, e.to
+    if a > b then a, b = b, a end
+    return a .. "\0" .. b .. "\0" .. e.kind
+  end
+  return e.from .. "\0" .. e.to .. "\0" .. e.kind
 end
 
 function graph.resolveAnchor(anchor, pages)
@@ -345,12 +351,13 @@ function graph.digest(anchor, pages, edges, opts)
     head = 1
   end
 
-  -- Evidence = induced subgraph edges, deduped by endpoints+kind.
+  -- Evidence = induced subgraph edges; undirected kinds dedupe by unordered
+  -- endpoints+kind, directed kinds by ordered from→to+kind.
   local usedEdges = {}
   local seen = {}
   for _, e in ipairs(filtered) do
     if e.from ~= e.to and included[e.from] and included[e.to] then
-      local key = pairKey(e.from, e.to, e.kind)
+      local key = evidenceKey(e)
       if not seen[key] then
         seen[key] = true
         usedEdges[#usedEdges + 1] = {

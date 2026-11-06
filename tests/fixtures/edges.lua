@@ -1,11 +1,13 @@
 -- Mini space graph for unit tests.
--- Pages: Alpha (#project), Beta (#project), Gamma (#journal), Delta (no user tags)
+-- Pages: Alpha (#project), Alpine (isolated; substring collision with Alpha),
+--        Beta (#project), Gamma (#journal), Delta (no user tags)
 -- Edges: Alpha -mention-> Beta, Beta -mention-> Gamma,
 --        Alpha -dependsOn-> Delta (user predicate), Gamma -mention-> https://example.com (url)
 
 return {
   pages = {
     { name = "Alpha", tags = { "page", "project" } },
+    { name = "Alpine", tags = { "page" } },
     { name = "Beta", tags = { "page", "project" } },
     { name = "Gamma", tags = { "page", "journal" } },
     { name = "Delta", tags = { "page" } },
