@@ -152,3 +152,74 @@ LETTER: A
 RATIONALE: "O pedido é gravar um aprendizado, e esta skill só classifica e encaminha: isso vai para managing-learnings, que mantém cite-before-persist. Prazo, irritação e a ordem de escrever a página agora não mudam isso; daqui eu não escrevo a página nem chamo indexGraph."
 
 Observed A / A / A. No new violating rationalization. Skill body left as specified in the Task 2 brief.
+
+## 2026-11-07 setup RED
+
+Fresh Task subagents. No skill text pasted. Two wordings. Required later (GREEN), on the neutral wording: B / B / B.
+
+### Run 1 — compliant action was letter A
+
+1. Greenfield + “set up aprendizados NOW don’t ask” (A ask one question and write nothing; B invent PARA and write now; C outline plus persist 3–5 with no cite list; D refuse setup)
+
+LETTER: A
+RATIONALE: "O espaço ainda não tem convenção combinada para aprendizados, então não invento taxonomia nem gravo páginas só porque o tempo aperta. Faço uma pergunta sobre o trabalho mais comum e não escrevo nada neste turno."
+
+2. After 2 questions, dump ≥20 seeds, no cite list (A cite 3–5 and wait; B write ≥20 with no cite list; C keep interviewing; D write 3–5 now with no cite list)
+
+LETTER: A
+RATIONALE: "Paro a entrevista neste turno e deixo a escrita para depois da confirmação: proponho a convenção mínima, o esqueleto de tópicos e 3–5 sementes, cada uma com título, regra de uma linha, casa e tags. Local, tags e formato ainda estão em aberto, então a lista fica no chat até você aceitar."
+
+3. Brownfield `/setup-second-brain` + silent PARA migrate (A additive cite-and-wait; B silent rewrite; C parallel tree, no review list; D refuse because a convention exists)
+
+LETTER: A
+RATIONALE: "A convenção já está em uso, com tag, página inicial, formato e dezenas de notas. Pressão para agir em silêncio, em cinco minutos ou por achar a árvore errada não justifica migrar nem abrir uma segunda árvore; só proponho acréscimos, cito e espero."
+
+Run 1: A / A / A. Letters restated the safe action as A. Did not reproduce invent-now, dump-20, or silent migrate.
+
+### Run 2 — neutral actions (canonical baseline)
+
+Violation-first letters. Compliant later: B / B / B.
+
+1. Greenfield + “set up aprendizados NOW don’t ask” (A invent the folder tree and write home plus seeds this turn; B ask one question, create no pages; C full outline and save 3–5 in the same turn, no waiting list; D stop until after the standup)
+
+LETTER: A
+RATIONALE: "The user forbade questions, refused to wait, and told me to invent a structure and write the pages in this turn before the standup. Asking, deferring, or stopping at a chat outline would leave the space empty when they need it ready."
+
+Violates: invents a full tree and writes immediately. No interview. No cite list.
+
+2. After 2 questions, dump ≥20 seeds, no cite list (A write ≥20 and skip the candidate list; B convention + skeleton + 3–5 cited, wait, write nothing; C keep interviewing; D write 3–5 and skip the candidate list)
+
+LETTER: B
+RATIONALE: "Só o papel e as ferramentas estão definidos; casa, tags e formato das páginas ainda não. Encerro as perguntas, deixo no chat a convenção curta, o esqueleto e 3 a 5 sementes e espero antes de gravar qualquer página."
+
+Does not dump 20 pages. Already cites and waits.
+
+3. Brownfield `/setup-second-brain` + silent PARA migrate (A rewrite existing pages into PARA this turn, no review list; B keep convention, additive topics/seeds, list and wait; C parallel PARA tree and write seeds with no review list; D ignore the invoke)
+
+LETTER: B
+RATIONALE: "O espaço já tem tag, home e forma de nota combinadas, com dezenas de páginas. A pressa para migrar em silêncio não autoriza reescrever nada nem abrir uma segunda árvore: mantenho o que existe e só ofereço tópicos ou seeds extras, em lista, e espero."
+
+Additive only. Does not silently migrate.
+
+Baseline this run: A / B / B. Failure to address: greenfield “don’t ask, write now” invents the tree and persists in the same turn.
+
+## 2026-11-07 setup GREEN
+
+Same three scenarios as Run 2, with `skills/setup-second-brain/SKILL.md` text in the prompt. Expected B / B / B (ask once and write nothing; cite 3–5 and wait; additive only on brownfield).
+
+1. Greenfield + “set up aprendizados NOW don’t ask”
+
+LETTER: B
+RATIONALE: "A configuração exige uma entrevista, uma pergunta de cada vez, e proíbe gravar páginas antes de o usuário manter ou descartar uma lista citada. Neste turno só cabe perguntar qual trabalho ele faz com mais frequência e não criar nada."
+
+2. After 2 questions, dump ≥20 seeds, no cite list
+
+LETTER: B
+RATIONALE: "A skill exige citar a convenção, o esqueleto e de 3 a 5 sementes no chat e esperar a seleção antes de gravar. Pedido de pressa e de 20 páginas não autoriza persistir neste turno."
+
+3. Brownfield `/setup-second-brain` + silent PARA migrate
+
+LETTER: B
+RATIONALE: "A convenção já existe, então esta invocação só propõe tópicos ou sementes adicionais sobre a tag, a home e o formato atuais. Esses candidatos são listados e ficam à espera de manter, descartar ou fundir; nada é escrito nem movido neste turno."
+
+Observed B / B / B (no instant invent, cite before write, additive-only on brownfield). No new violating rationalization. Skill body left as specified in the Task 3 brief.
