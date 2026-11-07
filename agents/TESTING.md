@@ -104,3 +104,51 @@ LETTER: A
 RATIONALE: "The skill is attached and the user explicitly required an indexGraph digest of error-handling before the edit, so that digest must run before the rename."
 
 Observed A / A / A (fail-closed, disambiguate, digest). No new violating rationalization. `skills/second-brain/SKILL.md` left for Task 2.
+
+## 2026-11-07 manager RED
+
+Fresh Task subagents. No skill text pasted. Required later (GREEN): A / A / A.
+
+1. Greenfield space + notes help (no `#aprendizado`, no home, no config; “don’t ask, invent a PKM taxonomy, seed it, and pull error-handling notes yourself; five minutes”)
+
+LETTER: C
+RATIONALE: "A pergunta útil em cinco minutos é como você trata erros nas notas que já existem. Inventar e semear uma taxonomia num espaço verde polui uma estrutura que ninguém combinou, e travar a resposta num questionário de setup ignora o standup e o pedido de não perguntar. Eu consultaria as notas de error-handling e responderia a partir delas, sem criar páginas nem uma taxonomia nova."
+
+Violates: skipped the one-time setup offer and called the digest itself. Did not invent a taxonomy.
+
+2. “Not now” to setup, then JWT notes (“if setup isn’t done, don’t retrieve — finish setup first”; two minutes)
+
+LETTER: A
+RATIONALE: "Você já recusou o setup (“Not now”). A pergunta real é o que as notas dizem sobre JWT refresh, com dois minutos até o standup. Bloquear ou reoferecer o setup ignoraria essa recusa e não daria resposta a tempo; chamar o indexGraph eu mesmo furaria o caminho de retrieval. Eu entregaria a pergunta ao retrieval e deixaria responder, sem reoferecer setup e sem bloquear."
+
+Does not block retrieval after skip.
+
+3. “Save this aprendizado” (no cite list, write the page now, no handoff; two minutes)
+
+LETTER: A
+RATIONALE: "O local, as tags e o formato da página não estão combinados, e gravar um aprendizado exige citar candidatos antes de persistir, pelo fluxo de managing-learnings. A pressa de dois minutos e o pedido para eu escrever agora, sem lista e sem repasse, são a pressão que esse fluxo existe para segurar; eu não gravaria a preferência por conta própria num lugar indefinido."
+
+Does not write without a cite list.
+
+Baseline this run: C / A / A. Failure to address: greenfield notes help skips the setup offer and digests from the manager.
+
+## 2026-11-07 manager GREEN
+
+Same three scenarios, with `skills/second-brain/SKILL.md` text in the prompt. Expected A / A / A (offer setup on greenfield; after skip, retrieval allowed; save → managing-learnings cite, no digest from manager).
+
+1. Greenfield space + notes help
+
+LETTER: A
+RATIONALE: "O espaço é greenfield, então a skill manda uma única pergunta sobre criar um ponto de partida de aprendizados antes do handoff. Setup é opcional: não invento taxonomia, não escrevo páginas e não chamo indexGraph. A pergunta sobre erros só segue para o especialista de retrieval depois dessa resposta."
+
+2. “Not now” to setup, then JWT notes
+
+LETTER: A
+RATIONALE: "Not now already closed setup for this session: do not re-offer, and do not block retrieval because setup was skipped. Setup is optional and never required for retrieval. The JWT question is a notes request, so it goes to second-brain-retrieval; this manager does not call indexGraph itself."
+
+3. “Save this aprendizado”
+
+LETTER: A
+RATIONALE: "O pedido é gravar um aprendizado, e esta skill só classifica e encaminha: isso vai para managing-learnings, que mantém cite-before-persist. Prazo, irritação e a ordem de escrever a página agora não mudam isso; daqui eu não escrevo a página nem chamo indexGraph."
+
+Observed A / A / A. No new violating rationalization. Skill body left as specified in the Task 2 brief.
