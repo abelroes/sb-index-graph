@@ -3,7 +3,7 @@ name: setup-second-brain
 description: >-
   Use when the user invokes /setup-second-brain; when the second-brain manager
   hands off greenfield onboarding; or when helping create a minimal learnings
-  starting point (interview, topic skeleton, seed notes) before first capture.
+  starting point before first capture.
 ---
 
 # setup-second-brain
