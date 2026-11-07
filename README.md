@@ -20,7 +20,9 @@ Same pattern as other SB plugs/libraries (`Library: Install` + `github:…/PLUG.
 
 ## Agent skills
 
-Canonical copies live under [`skills/`](skills/) (`second-brain`, `managing-learnings`).
+Canonical copies live under [`skills/`](skills/): `second-brain`, `second-brain-retrieval`, `setup-second-brain`, `managing-learnings`.
+
+Library install is unchanged (`github:abelroes/sb-index-graph/PLUG.md`).
 
 ```bash
 # from a clone of this repo
@@ -32,8 +34,10 @@ npx skills add abelroes/sb-index-graph -g --skill '*' -a '*' -y
 
 | Skill | When you use it |
 |-------|-----------------|
-| `second-brain` (`/second-brain`) | Ask the agent to use your second-brain — even during coding |
-| `managing-learnings` | Save or organize learnings without inventing a heavy note system |
+| `second-brain` (`/second-brain`) | Thin manager: route to setup, retrieval, or capture |
+| `second-brain-retrieval` | `indexGraph` closed-subgraph retrieval |
+| `setup-second-brain` | Optional greenfield interview and cited seed |
+| `managing-learnings` | Capture with cite-before-persist |
 
 Mirrors under `agents/` are optional. In SilverBullet, agents can also follow `Library/abelroes/sb-index-graph-skill`.
 
@@ -52,7 +56,7 @@ The agent should load a tight neighborhood of related pages first, then open onl
 
 ### Learnings (optional)
 
-Keep learnings short and tagged so the index can find them (e.g. `#aprendizado`). Prefer a few tags and links over deep folder trees. `managing-learnings` helps you agree that convention once (new space or existing), then write one short note at a time.
+Keep learnings short and tagged so the index can find them (e.g. `#aprendizado`). Prefer a few tags and links over deep folder trees. `setup-second-brain` is optional on a new space. `managing-learnings` cites candidates, then writes one short note at a time.
 
 ## Develop
 
