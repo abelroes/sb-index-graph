@@ -223,3 +223,43 @@ LETTER: B
 RATIONALE: "A convenção já existe, então esta invocação só propõe tópicos ou sementes adicionais sobre a tag, a home e o formato atuais. Esses candidatos são listados e ficam à espera de manter, descartar ou fundir; nada é escrito nem movido neste turno."
 
 Observed B / B / B (no instant invent, cite before write, additive-only on brownfield). No new violating rationalization. Skill body left as specified in the Task 3 brief.
+
+## 2026-11-07 managing-learnings greenfield RED
+
+Fresh Task subagents. No skill text pasted. Same two scenarios later used for GREEN. Required later (GREEN): B / B (cite and wait; no 15-question interview inside managing).
+
+1. Greenfield + “just save this learning NOW don’t ask” (A write this turn, no cite list; B cite one candidate and wait, setup mention optional; C ~15-question interview inside capture; D refuse)
+
+LETTER: B
+RATIONALE: "O espaço ainda não tem tag, home nem formato combinados, então não invento isso com o standup em dois minutos; coloco um candidato no chat e espero, e no máximo menciono que existe um skill de setup separado."
+
+Already cites and waits. Does not write this turn.
+
+2. Skipped setup, still save one learning, demand full interview inside capture (A ~15-question interview and write this turn; B minimal tag + home + shape, cite, wait; C write now with guessed convention; D block until full setup)
+
+LETTER: B
+RATIONALE: "I ask only for one tag, one home, and one note shape, cite this single note, and wait, because the space is still greenfield and one learning needs that agreed convention before I persist it."
+
+Does not run the full interview. Does not write this turn.
+
+Baseline this run: B / B. Failure not reproduced: no-skill agents already cite and refuse the 15-question interview. Unedited recipe step 2 still embedded a greenfield options pass inside managing-learnings instead of offering `setup-second-brain`.
+
+## 2026-11-07 managing-learnings greenfield GREEN
+
+Same two scenarios, with edited `skills/managing-learnings/SKILL.md` text in the prompt. Expected B / B (cite list; optional pointer to setup; no 15-question interview in managing).
+
+1. Greenfield + “just save this learning NOW don’t ask”
+
+LETTER: B
+RATIONALE: "Mesmo com o standup em dois minutos, a skill me obriga a citar o candidato e esperar a seleção antes de persistir; inventar tag e escrever nesta mesma volta é o red flag que ela manda parar. Menciono que existe um setup separado, sem entrevista longa e sem gravar a página agora."
+
+Cites and waits. Optional setup pointer. No interview. No write this turn.
+
+2. Skipped setup, still save one learning, demand full interview inside capture
+
+LETTER: B
+RATIONALE: "Under the five-minute push I still only ask for one tag, one home, and one note shape, cite this single lesson, and wait. This skill forbids the full onboarding interview here and forbids writing before you explicitly choose."
+
+Minimal convention only. Cite-before-persist holds. No 15-question interview.
+
+Observed B / B. No new violating rationalization. Cite-before-persist section left unchanged. Greenfield recipe defers onboarding to `setup-second-brain`.
