@@ -30,7 +30,7 @@ Retrieve a semantically closed subgraph via `indexGraph` before reading pages.
 4. Use `nodes`, `edges`, `affinityTags`, and snippets as primary evidence.
 5. `indexGraph.path(a, b)` for connection questions; `indexGraph.neighbors(page)` for local context.
 6. MCP `read` only for a specific node when snippets are insufficient.
-7. Persisting new learnings is **not** defined here — agree storage/types with the user (always-on skill `managing-learnings` outside SB) before writing. Outside SB, the always-on retrieval skill is named `second-brain` (`/second-brain`).
+7. Persisting new learnings is **not** defined here — agree storage/types with the user (always-on skill `managing-learnings` outside SB) before writing. Outside SB, the retrieval skill is named `second-brain-retrieval`; `/second-brain` is the thin manager.
 
 ```lua
 indexGraph.digest("project")
