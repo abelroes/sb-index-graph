@@ -43,7 +43,7 @@ Do not persist “in the same turn” as the first citation list.
 3. **Brownfield** — follow what exists. New types = optional tags/attributes in place. **No silent migrate**, no orphan parallel tree unless they choose it.
 4. **Capture** — cite candidates (above) → after selection, one short page per chosen item → stop.
 
-Read-only retrieval → **second-brain**. Persistence without agreement or without cited selection → stop.
+Read-only retrieval → **second-brain-retrieval**. Persistence without agreement or without cited selection → stop.
 
 ## Red flags — STOP
 
@@ -51,5 +51,5 @@ Read-only retrieval → **second-brain**. Persistence without agreement or witho
 - Deep folder/type trees, PARA/Zettel “standards”, or `tag.define` sprawl without ask
 - Long notes, transcript dumps, or duplicate content instead of links
 - Migrating brownfield or writing before accept on greenfield
-- Bypassing this skill via **second-brain** write-back
+- Bypassing this skill via **second-brain** / **second-brain-retrieval** write-back
 - Running full setup-second-brain interview inside managing-learnings
