@@ -39,7 +39,17 @@ Removed “User said get notes somehow” ban. Skill only governs `indexGraph` p
 
 ## Install
 
-Canonical under `skills/<skill>/` for `npx skills add`. Mirrors under `agents/`. Agent skill name is `second-brain` (`/second-brain`); the Space Lua library remains `sb-index-graph`.
+Canonical under `skills/<skill>/` for `npx skills add`. Mirrors under `agents/`. The Space Lua library remains `sb-index-graph`. Library install is unchanged (`github:abelroes/sb-index-graph/PLUG.md`).
+
+| Skill | Role |
+|-------|------|
+| `second-brain` (`/second-brain`) | Thin manager: route to setup / retrieval / capture |
+| `second-brain-retrieval` | `indexGraph` closed-subgraph retrieval |
+| `setup-second-brain` | Optional greenfield interview + cited seed |
+| `managing-learnings` | Capture with cite-before-persist |
+
+`npx skills add . -l -y` (skills@1.7.6, 2026-11-07) found 4 skills and did not install: `managing-learnings`, `second-brain`, `second-brain-retrieval`, `setup-second-brain`.
+
 ## managing-learnings rewrite (KISS / SB-native)
 
 Compressed skill: tags+index over folder taxonomies; short captures; YAGNI on `tag.define`. GREEN: invent-tree → B; brownfield+PARA → B.

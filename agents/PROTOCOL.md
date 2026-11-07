@@ -4,8 +4,10 @@ English always-on skills for MCP clients talking to a SilverBullet space with th
 
 | Skill | Role |
 |-------|------|
-| `second-brain` (`/second-brain`) | Retrieve closed subgraph via `indexGraph.*`; fail closed; honor manual invoke during codebase work |
-| `managing-learnings` | Configure and capture learnings/types; greenfield/brownfield; non-opinionated |
+| `second-brain` (`/second-brain`) | Thin manager: route to setup / retrieval / capture |
+| `second-brain-retrieval` | `indexGraph` closed-subgraph retrieval |
+| `setup-second-brain` | Optional greenfield interview + cited seed |
+| `managing-learnings` | Capture with cite-before-persist |
 
 Canonical for `npx skills add`: `skills/<skill>/SKILL.md`. Mirrors: `agents/cursor/` (and claude/kimi/agents-skills).
 
