@@ -31,10 +31,12 @@ export function installSkills({ providers, scope, cwd, home, sourceRoot = packag
 }
 
 export function removeSkills({ providers, scope, cwd, home, names = SKILL_NAMES }) {
+  const allow = new Set(SKILL_NAMES);
+  const targets = names.filter((name) => allow.has(name));
   const removed = [];
   for (const provider of providers) {
     const root = skillRoot(provider, scope, cwd, home);
-    for (const name of names) {
+    for (const name of targets) {
       const dest = path.join(root, name);
       if (fs.existsSync(dest)) {
         fs.rmSync(dest, { recursive: true, force: true });

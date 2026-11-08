@@ -43,3 +43,21 @@ test('removeSkills deletes only our four skill dirs', () => {
   assert.equal(fs.existsSync(path.join(home, '.cursor', 'skills', 'second-brain')), false);
   assert.equal(fs.existsSync(path.join(foreign, 'SKILL.md')), true);
 });
+
+test('removeSkills does not delete names outside SKILL_NAMES', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sbig-home-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'sbig-cwd-'));
+  const foreign = path.join(home, '.cursor', 'skills', 'other-skill');
+  fs.mkdirSync(foreign, { recursive: true });
+  fs.writeFileSync(path.join(foreign, 'SKILL.md'), 'keep\n');
+  const result = removeSkills({
+    providers: ['cursor'],
+    scope: 'global',
+    cwd,
+    home,
+    names: ['other-skill'],
+  });
+  assert.equal(fs.existsSync(foreign), true);
+  assert.equal(fs.readFileSync(path.join(foreign, 'SKILL.md'), 'utf8'), 'keep\n');
+  assert.deepEqual(result.removed, []);
+});
