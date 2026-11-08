@@ -6,6 +6,28 @@ import { MARKER } from './constants.mjs';
 export const HOOK_COMMAND_GLOBAL = './hooks/sb-index-graph.mjs';
 export const HOOK_COMMAND_PROJECT = '.cursor/hooks/sb-index-graph.mjs';
 
+const HOOK_LIB_FILES = ['messages.mjs', 'heuristics.mjs', 'dedup.mjs'];
+
+function copyHookLib(packageRoot, hooksDir) {
+  const libSrc = path.join(packageRoot, 'hooks', 'lib');
+  if (!fs.existsSync(libSrc)) return;
+  const libDest = path.join(hooksDir, 'lib');
+  fs.mkdirSync(libDest, { recursive: true });
+  for (const name of HOOK_LIB_FILES) {
+    const src = path.join(libSrc, name);
+    if (fs.existsSync(src)) fs.copyFileSync(src, path.join(libDest, name));
+  }
+}
+
+function removeHookLib(hooksDir) {
+  const libDest = path.join(hooksDir, 'lib');
+  for (const name of HOOK_LIB_FILES) {
+    fs.rmSync(path.join(libDest, name), { force: true });
+  }
+  if (!fs.existsSync(libDest)) return;
+  if (fs.readdirSync(libDest).length === 0) fs.rmdirSync(libDest);
+}
+
 function isOurs(entry) {
   return typeof entry?.command === 'string' && entry.command.includes(MARKER);
 }
@@ -52,6 +74,7 @@ export function installCursorHooks({ scope, cwd, home, packageRoot }) {
   const scriptDest = path.join(hooksDir, 'sb-index-graph.mjs');
   fs.copyFileSync(scriptSrc, scriptDest);
   fs.chmodSync(scriptDest, 0o755);
+  copyHookLib(packageRoot, hooksDir);
   const fragmentRaw = JSON.parse(
     fs.readFileSync(path.join(packageRoot, 'hooks', 'hooks.json.fragment'), 'utf8'),
   );
@@ -70,6 +93,7 @@ export function uninstallCursorHooks({ scope, cwd, home }) {
   const hooksJsonPath = cursorHooksJsonPath(scope, cwd, home);
   const scriptDest = path.join(hooksDir, 'sb-index-graph.mjs');
   if (fs.existsSync(scriptDest)) fs.rmSync(scriptDest, { force: true });
+  removeHookLib(hooksDir);
   if (!fs.existsSync(hooksJsonPath)) return;
   const existing = JSON.parse(fs.readFileSync(hooksJsonPath, 'utf8'));
   const stripped = stripHooksJson(existing);
