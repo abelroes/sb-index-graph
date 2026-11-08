@@ -46,6 +46,8 @@ test('installCursorHooks writes script and merges json', () => {
   const pkg = fs.mkdtempSync(path.join(os.tmpdir(), 'sbig-p-'));
   fs.mkdirSync(path.join(pkg, 'hooks'), { recursive: true });
   fs.writeFileSync(path.join(pkg, 'hooks', 'sb-index-graph.mjs'), '#!/usr/bin/env node\nconsole.log("{}")\n');
+  fs.mkdirSync(path.join(pkg, 'hooks', 'lib'), { recursive: true });
+  fs.writeFileSync(path.join(pkg, 'hooks', 'lib', 'messages.mjs'), 'export const SESSION = "x";\n');
   fs.writeFileSync(
     path.join(pkg, 'hooks', 'hooks.json.fragment'),
     JSON.stringify({
@@ -63,6 +65,7 @@ test('installCursorHooks writes script and merges json', () => {
   );
   installCursorHooks({ scope: 'global', cwd, home, packageRoot: pkg });
   assert.equal(fs.existsSync(path.join(home, '.cursor', 'hooks', 'sb-index-graph.mjs')), true);
+  assert.equal(fs.existsSync(path.join(home, '.cursor', 'hooks', 'lib', 'messages.mjs')), true);
   const hj = JSON.parse(fs.readFileSync(path.join(home, '.cursor', 'hooks.json'), 'utf8'));
   assert.equal(hj.hooks.afterFileEdit.length, 1);
   assert.ok(hj.hooks.sessionStart);
@@ -71,4 +74,5 @@ test('installCursorHooks writes script and merges json', () => {
   assert.equal(hj2.hooks.sessionStart, undefined);
   assert.equal(hj2.hooks.afterFileEdit.length, 1);
   assert.equal(fs.existsSync(path.join(home, '.cursor', 'hooks', 'sb-index-graph.mjs')), false);
+  assert.equal(fs.existsSync(path.join(home, '.cursor', 'hooks', 'lib', 'messages.mjs')), false);
 });
