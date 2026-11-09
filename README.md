@@ -21,7 +21,7 @@ npx sb-index-graph update -y --scope=global
 
 SilverBullet library (Runtime API / MCP on the space):
 
-1. In SilverBullet: **Library: Install**
+1. In SilverBullet: **Ctrl + /** → **Library: Install**
 2. URI: `github:abelroes/sb-index-graph/PLUG.md`
 3. **System: Reload**
 
