@@ -18,17 +18,30 @@ github:abelroes/sb-index-graph/PLUG.md
 
 Same pattern as other SB plugs/libraries (`Library: Install` + `github:…/PLUG.md`).
 
-## Agent skills
+## Agent skills and hooks
 
 Canonical copies live under [`skills/`](skills/): `second-brain`, `second-brain-retrieval`, `setup-second-brain`, `managing-learnings`.
 
 Library install is unchanged (`github:abelroes/sb-index-graph/PLUG.md`).
 
-```bash
-# from a clone of this repo
-npx skills add . -g --skill '*' -a '*' -y
+Primary install (skills + Cursor hooks):
 
-# or from GitHub (needs clone access to the repo)
+```bash
+npx sb-index-graph install -y --scope=global --providers=cursor,claude,codex
+# project-scoped Copilot skills:
+npx sb-index-graph install -y --scope=project --providers=copilot
+npx sb-index-graph uninstall -y --scope=global
+npx sb-index-graph update -y --scope=global
+```
+
+Providers: `cursor` (skills + hooks), `claude`, `codex` (`.agents`), `copilot` (project `.github/skills/` only). Hooks run on Cursor only (`sessionStart`, `beforeSubmitPrompt`, `stop`, `subagentStop`, `preCompact`).
+
+Cursor hooks: `sessionStart` injects context; `stop` and `subagentStop` may follow up; `preCompact` shows a `user_message`; `beforeSubmitPrompt` is registered but cannot soft-inject per the Cursor schema.
+
+Skills-only fallback (no hooks):
+
+```bash
+npx skills add . -g --skill '*' -a '*' -y
 npx skills add abelroes/sb-index-graph -g --skill '*' -a '*' -y
 ```
 
