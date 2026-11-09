@@ -273,3 +273,8 @@ RATIONALE: "Under the five-minute push I still only ask for one tag, one home, a
 Minimal convention only. Cite-before-persist holds. No 15-question interview.
 
 Observed B / B. No new violating rationalization. Cite-before-persist section left unchanged. Greenfield recipe defers onboarding to `setup-second-brain`.
+
+## 2026-11-08 install + hooks
+
+- CLI: `npm test` (paths, skills copy, hooks merge, install/uninstall, hook responseFor).
+- Manual: `node cli/bin.mjs install -y --scope=project --providers=cursor` then check `.cursor/hooks.json` contains `sb-index-graph` and Hooks output channel shows sessionStart.

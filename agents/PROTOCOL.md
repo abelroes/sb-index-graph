@@ -11,4 +11,6 @@ English always-on skills for MCP clients talking to a SilverBullet space with th
 
 Canonical for `npx skills add`: `skills/<skill>/SKILL.md`. Mirrors: `agents/cursor/` (and claude/kimi/agents-skills).
 
+Installer: `npx sb-index-graph install` (see README). Cursor hooks are optional automation; skills remain the source of routing rules.
+
 Testing notes: `agents/TESTING.md`.
