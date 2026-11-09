@@ -19,3 +19,13 @@ export function isSubstantial(input = {}) {
   const edits = readCount(input, 'editCount', 'edit_count');
   return tools >= STOP_TOOL_THRESHOLD || edits >= STOP_EDIT_THRESHOLD;
 }
+
+/** True when the payload carries tool/edit counts (subagentStop does; stop does not). */
+export function hasCountFields(input = {}) {
+  return (
+    input.toolCallCount != null
+    || input.tool_call_count != null
+    || input.editCount != null
+    || input.edit_count != null
+  );
+}
