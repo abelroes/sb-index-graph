@@ -1,16 +1,15 @@
 #!/usr/bin/env node
 import { pathToFileURL } from 'node:url';
 import { claimDedup } from './lib/dedup.mjs';
-import { isSubstantial, promptMatches } from './lib/heuristics.mjs';
+import { hasCountFields, isSubstantial, promptMatches } from './lib/heuristics.mjs';
 import {
   PRECOMPACT,
-  PROMPT_MATCH,
   SESSION,
   STOP_FOLLOWUP,
   SUBAGENT_FOLLOWUP,
 } from './lib/messages.mjs';
 
-export { isSubstantial, promptMatches };
+export { hasCountFields, isSubstantial, promptMatches };
 
 function readStdin() {
   return new Promise((resolve, reject) => {
@@ -21,6 +20,15 @@ function readStdin() {
   });
 }
 
+/**
+ * Map Cursor hook events to documented output fields only
+ * (https://cursor.com/docs/hooks):
+ * - sessionStart → additional_context
+ * - beforeSubmitPrompt → continue / user_message only (no context inject) → {}
+ * - stop → followup_message; input is status + loop_count (no tool counts)
+ * - subagentStop → followup_message when status is completed
+ * - preCompact → user_message (observational)
+ */
 export function responseFor(event, input) {
   const src = input && typeof input === 'object' ? input : {};
   const eventName = event || src.hook_event_name || src.event || '';
@@ -28,18 +36,29 @@ export function responseFor(event, input) {
     case 'sessionStart':
       return { additional_context: SESSION };
     case 'beforeSubmitPrompt':
-      return promptMatches(src.prompt) ? { additional_context: PROMPT_MATCH } : {};
+      // Docs: only `continue` + `user_message` (when blocked). Soft agent
+      // injection is not supported — keep registered, return {}.
+      return {};
     case 'stop': {
-      if (!isSubstantial(src)) return {};
+      // Real payload: { status, loop_count }. Counts appear only in tests /
+      // subagentStop. Fire on completed; if counts are present, also require
+      // the substantial threshold.
+      if (src.status && src.status !== 'completed') return {};
+      if (hasCountFields(src)) {
+        if (!isSubstantial(src)) return {};
+      } else if (src.status !== 'completed') {
+        return {};
+      }
       if (!src.__skipDedup && !claimDedup('stop', Date.now(), src.__dedupFile)) return {};
       return { followup_message: STOP_FOLLOWUP };
     }
     case 'subagentStop': {
+      if (src.status && src.status !== 'completed') return {};
       if (!src.__skipDedup && !claimDedup('subagentStop', Date.now(), src.__dedupFile)) return {};
       return { followup_message: SUBAGENT_FOLLOWUP };
     }
     case 'preCompact':
-      return { additional_context: PRECOMPACT };
+      return { user_message: PRECOMPACT };
     default:
       return {};
   }
