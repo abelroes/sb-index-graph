@@ -2,9 +2,6 @@
   "version": 1,
   "hooks": {
     "sessionStart": [{ "command": "./hooks/sb-index-graph.mjs", "timeout": 5 }],
-    "beforeSubmitPrompt": [{ "command": "./hooks/sb-index-graph.mjs", "timeout": 5 }],
-    "stop": [{ "command": "./hooks/sb-index-graph.mjs", "timeout": 5 }],
-    "subagentStop": [{ "command": "./hooks/sb-index-graph.mjs", "timeout": 5 }],
     "preCompact": [{ "command": "./hooks/sb-index-graph.mjs", "timeout": 5 }]
   }
 }

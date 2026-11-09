@@ -6,13 +6,18 @@ import { MARKER } from './constants.mjs';
 export const HOOK_COMMAND_GLOBAL = './hooks/sb-index-graph.mjs';
 export const HOOK_COMMAND_PROJECT = '.cursor/hooks/sb-index-graph.mjs';
 
-const HOOK_LIB_FILES = ['messages.mjs', 'heuristics.mjs', 'dedup.mjs'];
+const HOOK_LIB_FILES = ['messages.mjs'];
+/** Removed from the package; still deleted on install/uninstall so upgrades clean up. */
+const LEGACY_HOOK_LIB_FILES = ['heuristics.mjs', 'dedup.mjs'];
 
 function copyHookLib(packageRoot, hooksDir) {
   const libSrc = path.join(packageRoot, 'hooks', 'lib');
   if (!fs.existsSync(libSrc)) return;
   const libDest = path.join(hooksDir, 'lib');
   fs.mkdirSync(libDest, { recursive: true });
+  for (const name of LEGACY_HOOK_LIB_FILES) {
+    fs.rmSync(path.join(libDest, name), { force: true });
+  }
   for (const name of HOOK_LIB_FILES) {
     const src = path.join(libSrc, name);
     if (fs.existsSync(src)) fs.copyFileSync(src, path.join(libDest, name));
@@ -21,7 +26,7 @@ function copyHookLib(packageRoot, hooksDir) {
 
 function removeHookLib(hooksDir) {
   const libDest = path.join(hooksDir, 'lib');
-  for (const name of HOOK_LIB_FILES) {
+  for (const name of [...HOOK_LIB_FILES, ...LEGACY_HOOK_LIB_FILES]) {
     fs.rmSync(path.join(libDest, name), { force: true });
   }
   if (!fs.existsSync(libDest)) return;
@@ -33,15 +38,15 @@ function isOurs(entry) {
 }
 
 export function mergeHooksJson(existing, fragment) {
-  const base = existing && typeof existing === 'object'
-    ? structuredClone(existing)
-    : { version: 1, hooks: {} };
+  // Strip all our entries first so retired events (stop, etc.) leave on upgrade.
+  const base = stripHooksJson(
+    existing && typeof existing === 'object' ? existing : { version: 1, hooks: {} },
+  );
   base.version = base.version ?? 1;
   base.hooks = base.hooks ?? {};
   for (const [event, entries] of Object.entries(fragment.hooks || {})) {
     const current = Array.isArray(base.hooks[event]) ? base.hooks[event] : [];
-    const kept = current.filter((e) => !isOurs(e));
-    base.hooks[event] = [...kept, ...entries];
+    base.hooks[event] = [...current, ...entries];
   }
   return base;
 }

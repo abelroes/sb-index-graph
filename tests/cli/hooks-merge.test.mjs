@@ -5,25 +5,30 @@ import os from 'node:os';
 import path from 'node:path';
 import { mergeHooksJson, stripHooksJson, installCursorHooks, uninstallCursorHooks } from '../../cli/hooks-merge.mjs';
 
-test('mergeHooksJson preserves foreign hooks and upserts ours', () => {
+test('mergeHooksJson preserves foreign hooks, upserts ours, drops retired ours', () => {
   const existing = {
     version: 1,
     hooks: {
       afterFileEdit: [{ command: './hooks/format.sh' }],
       stop: [{ command: './hooks/sb-index-graph.mjs' }],
+      beforeSubmitPrompt: [{ command: './hooks/sb-index-graph.mjs' }],
+      subagentStop: [{ command: './hooks/sb-index-graph.mjs' }],
     },
   };
   const fragment = {
     version: 1,
     hooks: {
-      stop: [{ command: './hooks/sb-index-graph.mjs', timeout: 5 }],
       sessionStart: [{ command: './hooks/sb-index-graph.mjs', timeout: 5 }],
+      preCompact: [{ command: './hooks/sb-index-graph.mjs', timeout: 5 }],
     },
   };
   const merged = mergeHooksJson(existing, fragment);
   assert.equal(merged.hooks.afterFileEdit.length, 1);
-  assert.equal(merged.hooks.stop.length, 1);
+  assert.equal(merged.hooks.stop, undefined);
+  assert.equal(merged.hooks.beforeSubmitPrompt, undefined);
+  assert.equal(merged.hooks.subagentStop, undefined);
   assert.equal(merged.hooks.sessionStart.length, 1);
+  assert.equal(merged.hooks.preCompact.length, 1);
 });
 
 test('stripHooksJson removes only sb-index-graph commands', () => {
