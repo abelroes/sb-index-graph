@@ -3,18 +3,35 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { responseFor } from '../../hooks/sb-index-graph.mjs';
+import { SESSION, PRECOMPACT } from '../../hooks/lib/messages.mjs';
 
 const script = fileURLToPath(new URL('../../hooks/sb-index-graph.mjs', import.meta.url));
 
-test('sessionStart returns additional_context', () => {
+test('sessionStart returns additional_context with mandatory boot', () => {
   const out = responseFor('sessionStart', {});
-  assert.match(String(out.additional_context), /second-brain/i);
+  const ctx = String(out.additional_context);
+  assert.match(ctx, /second-brain-retrieval/i);
+  assert.match(ctx, /boot/i);
+  assert.match(ctx, /basename/i);
+  assert.match(ctx, /ask the user/i);
+  assert.match(ctx, /#superpowers/);
+  assert.match(ctx, /#spec/);
+  assert.match(ctx, /#plan/);
+  assert.match(ctx, /#docs/);
+  assert.match(ctx, /docs\/superpowers/);
+  assert.doesNotMatch(ctx, /Software Engineer\/Projetos/);
+  assert.equal(ctx, SESSION);
 });
 
-test('preCompact returns user_message', () => {
+test('preCompact returns user_message requiring re-boot digest', () => {
   const out = responseFor('preCompact', {});
-  assert.match(String(out.user_message), /second-brain/i);
+  const msg = String(out.user_message);
+  assert.match(msg, /re-run/i);
+  assert.match(msg, /boot/i);
+  assert.match(msg, /second-brain/i);
   assert.equal(out.additional_context, undefined);
+  assert.equal(msg, PRECOMPACT);
+  assert.doesNotMatch(msg, /Software Engineer\/Projetos/);
 });
 
 test('retired events return empty', () => {
@@ -33,5 +50,5 @@ test('stdin fail-open prints empty object', () => {
     encoding: 'utf8',
   });
   assert.equal(ok.status, 0);
-  assert.match(JSON.parse(ok.stdout).additional_context, /second-brain/i);
+  assert.match(JSON.parse(ok.stdout).additional_context, /boot/i);
 });

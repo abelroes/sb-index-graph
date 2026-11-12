@@ -42,7 +42,7 @@ Canonical skill copies: [`skills/`](skills/).
 
 ## Behavior
 
-- Cursor hooks (`sessionStart`, `preCompact`): `sessionStart` injects context; `preCompact` may show `user_message`. No `stop` / `subagentStop` followups (avoids auto-submitted chat spam).
+- Cursor hooks (`sessionStart`, `preCompact`): `sessionStart` mandates second-brain session boot (contract + workspace basename) and space preferences for artifact paths (e.g. Superpowers + `#superpowers`/`#spec`/`#docs`/`#plan`); `preCompact` may show `user_message` to re-run boot. No `stop` / `subagentStop` followups (avoids auto-submitted chat spam).
 - Skills-only (no hooks): `npx skills add abelroes/sb-index-graph -g --skill '*' -a '*' -y`
 - Needs Runtime API on the space and MCP to SilverBullet. Not the Graph View UI.
 - If index/runtime is down, say so — do not fake full-space search as retrieval.
