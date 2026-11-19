@@ -23,9 +23,10 @@ Requires Runtime API (MCP `lua`). If the runtime or index is unavailable, calls 
 
 - `indexGraph.neighbors(page, opts?)`
 - `indexGraph.path(from, to, opts?)`
-- `indexGraph.digest(anchor, opts?)`
+- `indexGraph.digest(anchor, opts?)` — closed subgraph; budgets `maxNodes` (default 40), `maxTokens` (approximate), `snippetCap` (160); reports `truncated` + `dropped` when cut
+- `indexGraph.manifest(page)` — section outline + per-section excerpt; cheaper than a full read on large pages
 
-`opts.kinds` optional list of relation kinds to keep. URLs excluded by default.
+`opts.kinds` optional list of relation kinds to keep. URLs excluded by default. Hub `related:` families join the digest as hierarchy evidence but never widen tag affinity; hierarchy nodes are promoted to full affinity when an affinity node reaches them.
 
 ```space-lua
 -- priority: 10
@@ -569,6 +570,90 @@ function graph.digest(anchor, pages, edges, opts)
   }
 end
 
+local function stripInlineMd(s)
+  s = s:gsub("%[%[([^%|%]]-)%|.-]]", "%1")
+  s = s:gsub("%[%[([^%]]-)%]%]", "%1")
+  s = s:gsub("%[([^%]]-)%]%([^)]*%)", "%1")
+  s = s:gsub("^[%-%*+#>]%s+", "")
+  s = s:gsub("`", "")
+  return (s:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+local function excerptFrom(line)
+  local s = stripInlineMd(line)
+  if s == "" then return nil end
+  local cut = s:find("[.!?]%s") or s:find("[.!?]$")
+  if cut then s = s:sub(1, cut) end
+  local words, capped = {}, false
+  for w in s:gmatch("%S+") do
+    if #words >= 25 then capped = true break end
+    words[#words + 1] = w
+  end
+  local joined = table.concat(words, " ")
+  if joined == "" then return nil end
+  if capped then joined = joined .. "…" end
+  return joined
+end
+
+-- L1 manifest: deterministic outline of a page body — ATX headings (fences
+-- respected), chars per section, first-sentence excerpt capped at 25 words.
+-- No summarization: this is cheap extraction, not a persisted artifact.
+function graph.manifest(page, text)
+  if type(page) ~= "string" or page == "" then
+    return { ok = false, error = "invalid_page" }
+  end
+  if type(text) ~= "string" then
+    return { ok = false, error = "no_text", page = page }
+  end
+  local sections = {}
+  local cur = nil
+  local inFront = false
+  local frontDone = false
+  local inFence = false
+  local fenceMark = nil
+  local totalChars = 0
+  local lineNo = 0
+  for raw in (text .. "\n"):gmatch("([^\n]*)\n") do
+    lineNo = lineNo + 1
+    local line = raw:gsub("\r$", "")
+    if not frontDone and lineNo == 1 and line == "---" then
+      inFront = true
+    elseif inFront and line == "---" and lineNo > 1 then
+      inFront = false
+      frontDone = true
+    elseif not inFront then
+      -- no (A|B) alternation: portable across PUC/LuaJIT and Space Lua
+      local fm = line:match("^%s*```+") or line:match("^%s*~~~+")
+      if fm and not inFence then
+        inFence = true
+        fenceMark = fm:sub(1, 3)
+        if cur then cur.chars = cur.chars + #line + 1 end
+        totalChars = totalChars + #line + 1
+      elseif inFence then
+        if line:match("^%s*" .. fenceMark) then inFence = false end
+        if cur then cur.chars = cur.chars + #line + 1 end
+        totalChars = totalChars + #line + 1
+      else
+        local hashes, title = line:match("^(#+)%s+(.-)%s*$")
+        if hashes and #hashes <= 6 and title ~= "" then
+          totalChars = totalChars + #line + 1
+          cur = { level = #hashes, heading = stripInlineMd(title), chars = 0, excerpt = nil }
+          sections[#sections + 1] = cur
+        else
+          totalChars = totalChars + #line + 1
+          if cur then
+            cur.chars = cur.chars + #line + 1
+            if cur.excerpt == nil and line:match("%S") then
+              cur.excerpt = excerptFrom(line)
+            end
+          end
+        end
+      end
+    end
+  end
+  return { ok = true, page = page, totalChars = totalChars, sections = sections }
+end
+
 return graph
 ```
 
@@ -625,5 +710,21 @@ function indexGraph.digest(anchor, opts)
   local edges, err = loadRelations(opts)
   if not edges then return { ok = false, error = err } end
   return graph.digest(anchor, loadPages(), edges, opts)
+end
+
+function indexGraph.manifest(page)
+  local pages = loadPages()
+  local resolved = graph.resolveAnchor(page, pages)
+  if not resolved.ok then
+    return { ok = false, error = resolved.error, candidates = resolved.candidates }
+  end
+  if resolved.mode ~= "page" then
+    return { ok = false, error = "ambiguous", candidates = resolved.pages }
+  end
+  local ok, text = pcall(function() return space.readPage(resolved.page) end)
+  if not ok or type(text) ~= "string" then
+    return { ok = false, error = "read_failed", page = resolved.page }
+  end
+  return graph.manifest(resolved.page, text)
 end
 ```

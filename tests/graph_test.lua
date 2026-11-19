@@ -290,3 +290,44 @@ assert_eq(dcap.ok, true)
 assert_eq(#dcap.edges[1].snippet, 160 + #"…", "snippet capped at 160 codepoints + ellipsis")
 
 print("OK digest")
+
+-- manifest: deterministic section outline (no summarization)
+local pageText = table.concat({
+  "---",
+  "tags: demo",
+  "---",
+  "# Alpha Section",
+  "First paragraph sentence. Second one here.",
+  "",
+  "```lua",
+  "# Fake heading inside fence",
+  "local x = 1",
+  "```",
+  "## Sub, com [[Wiki Link|alias]] e [md](http://x)",
+  "- item one",
+  "",
+  "### Third",
+  "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twenty-one twenty-two twenty-three twenty-four twenty-five twenty-six stop.",
+}, "\n")
+local m = graph.manifest("Demo", pageText)
+assert_true(m.ok)
+assert_eq(#m.sections, 3, "fake heading inside fence ignored")
+assert_eq(m.sections[1].level, 1)
+assert_eq(m.sections[1].heading, "Alpha Section")
+assert_eq(m.sections[1].excerpt, "First paragraph sentence.")
+assert_true(m.sections[1].chars > 0)
+assert_eq(m.sections[2].heading, "Sub, com Wiki Link e md")
+assert_eq(m.sections[2].excerpt, "item one", "list marker stripped")
+assert_eq(m.sections[3].level, 3)
+local wc = 0
+for _ in m.sections[3].excerpt:gmatch("%S+") do wc = wc + 1 end
+assert_eq(wc, 25, "excerpt capped at 25 words")
+assert_true(m.totalChars > 0)
+assert_true(string.find((m.sections[2].heading .. (m.sections[2].excerpt or "")), "[[", 1, true) == nil, "wiki syntax stripped")
+
+local mNoHead = graph.manifest("P", "no headings here")
+assert_true(mNoHead.ok and #mNoHead.sections == 0 and mNoHead.totalChars > 0)
+assert_eq(graph.manifest("", "x").error, "invalid_page")
+assert_eq(graph.manifest("P", nil).error, "no_text")
+
+print("OK manifest")
