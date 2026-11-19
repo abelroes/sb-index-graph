@@ -5,6 +5,9 @@ local RESERVED = {
   ["at-mention"] = true,
   authored = true,
   ["co-mention"] = true,
+  -- `related` is hub frontmatter hierarchy: it admits the hub family as
+  -- evidence but never widens tag affinity (see graph.digest).
+  related = true,
 }
 
 -- LuaJIT / PUC: no string.split; use match
@@ -276,10 +279,13 @@ function graph.resolveAnchor(anchor, pages)
   return { ok = false, error = "ambiguous", candidates = subs }
 end
 
--- Digest = fixed point of tag-affinity admission from the resolved anchor(s).
--- A neighbor joins when it shares a user tag with the affinity set or when the
--- connecting edge is a user predicate; admitted tags widen the affinity set.
--- No hop or page quotas: closure ends when nothing new is admissible.
+-- Digest = fixed point of affinity admission from the resolved anchor(s).
+-- Affinity nodes contribute their user tags and widen the affinity set.
+-- `related` edges (hub frontmatter hierarchy) admit the other endpoint as a
+-- hierarchy node: it joins the closure (full hub family, chain included) and
+-- appears as edge evidence, but contributes no tags and never expands
+-- non-related edges. A hierarchy node is promoted to affinity once an
+-- affinity node reaches it via a shared user tag or a user predicate.
 function graph.digest(anchor, pages, edges, opts)
   local resolved = graph.resolveAnchor(anchor, pages)
   if not resolved.ok then
@@ -295,36 +301,62 @@ function graph.digest(anchor, pages, edges, opts)
 
   local filtered = graph.collapseCoMentions(graph.filterEdges(edges, opts))
   local adj = buildUndirectedAdj(filtered)
-  local included = {}
-  local queue = {}
+  local included = {} -- name -> true
+  local role = {} -- name -> "seed" | "affinity" | "hierarchy"
+  local relDist = {} -- hierarchy nodes: depth of the related chain
+  local affQueue = {} -- scanned for predicate/tag admission + promotion
+  local relQueue = {} -- scanned for related-chain propagation
   for _, name in ipairs(seeds) do
     included[name] = true
-    queue[#queue + 1] = name
+    role[name] = "seed"
+    affQueue[#affQueue + 1] = name
+    relQueue[#relQueue + 1] = name
   end
 
-  local head = 1
   -- Fixed point: a node rejected now may become admissible once another
   -- admission widens the affinity set, so keep rescanning until stable.
   local changed = true
   while changed do
     changed = false
-    while head <= #queue do
-      local cur = queue[head]
+    local head = 1
+    while head <= #affQueue do
+      local cur = affQueue[head]
       head = head + 1
       for _, nb in ipairs(adj[cur] or {}) do
-        if not included[nb.ref] then
+        if nb.kind ~= "related" then
           local target = byName[nb.ref]
           local ttags = graph.userTags(target and target.tags)
-          if sharesAny(ttags, affinity) or graph.isUserPredicate(nb.kind) then
+          local qualifies = graph.isUserPredicate(nb.kind) or sharesAny(ttags, affinity)
+          if qualifies and not included[nb.ref] then
             included[nb.ref] = true
-            queue[#queue + 1] = nb.ref
+            role[nb.ref] = "affinity"
             for t in pairs(ttags) do affinity[t] = true end
+            affQueue[#affQueue + 1] = nb.ref
+            relQueue[#relQueue + 1] = nb.ref
+            changed = true
+          elseif qualifies and role[nb.ref] == "hierarchy" then
+            role[nb.ref] = "affinity"
+            for t in pairs(ttags) do affinity[t] = true end
+            affQueue[#affQueue + 1] = nb.ref
             changed = true
           end
         end
       end
     end
     head = 1
+    while head <= #relQueue do
+      local cur = relQueue[head]
+      head = head + 1
+      for _, nb in ipairs(adj[cur] or {}) do
+        if nb.kind == "related" and not included[nb.ref] then
+          included[nb.ref] = true
+          role[nb.ref] = "hierarchy"
+          relDist[nb.ref] = (role[cur] == "hierarchy") and (relDist[cur] + 1) or 1
+          relQueue[#relQueue + 1] = nb.ref
+          changed = true
+        end
+      end
+    end
   end
 
   -- Evidence = induced subgraph edges; undirected kinds dedupe by unordered
@@ -360,7 +392,7 @@ function graph.digest(anchor, pages, edges, opts)
     local tags = {}
     for t in pairs(graph.userTags(p and p.tags)) do tags[#tags + 1] = t end
     table.sort(tags)
-    nodes[#nodes + 1] = { ref = name, tags = tags, dangling = p == nil }
+    nodes[#nodes + 1] = { ref = name, tags = tags, role = role[name], dangling = p == nil }
   end
   table.sort(nodes, function(a, b) return a.ref < b.ref end)
 
