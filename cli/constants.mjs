@@ -4,6 +4,6 @@ export const SKILL_NAMES = [
   'setup-second-brain',
   'managing-learnings',
 ];
-export const PROVIDERS = ['cursor', 'claude', 'codex', 'copilot'];
+export const PROVIDERS = ['cursor', 'claude', 'codex', 'opencode', 'copilot'];
 export const MARKER = 'sb-index-graph';
 

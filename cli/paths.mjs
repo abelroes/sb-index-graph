@@ -19,6 +19,10 @@ export function skillRoot(provider, scope, cwd, home) {
       global: path.join(home, '.agents', 'skills'),
       project: path.join(cwd, '.agents', 'skills'),
     },
+    opencode: {
+      global: path.join(home, '.config', 'opencode', 'skill'),
+      project: path.join(cwd, '.opencode', 'skill'),
+    },
     copilot: {
       project: path.join(cwd, '.github', 'skills'),
     },

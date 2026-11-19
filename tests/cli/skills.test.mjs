@@ -31,6 +31,22 @@ test('installSkills copies into cursor global root', () => {
   assert.equal(fs.readFileSync(dest, 'utf8'), '# second-brain\n');
 });
 
+test('installSkills copies into opencode global root', () => {
+  const sourceRoot = fixtureSkills();
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sbig-home-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'sbig-cwd-'));
+  const result = installSkills({
+    providers: ['opencode'],
+    scope: 'global',
+    cwd,
+    home,
+    sourceRoot,
+  });
+  assert.equal(result.installed.length, 4);
+  const dest = path.join(home, '.config', 'opencode', 'skill', 'second-brain', 'SKILL.md');
+  assert.equal(fs.readFileSync(dest, 'utf8'), '# second-brain\n');
+});
+
 test('removeSkills deletes only our four skill dirs', () => {
   const sourceRoot = fixtureSkills();
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'sbig-home-'));

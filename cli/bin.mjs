@@ -4,7 +4,7 @@ import { runInstall } from './install.mjs';
 import { runUninstall } from './uninstall.mjs';
 import { runUpdate } from './update.mjs';
 
-const USAGE = 'Usage: sb-index-graph <install|uninstall|update> [--scope=global|project] [--providers=cursor,claude,codex,copilot] [-y]';
+const USAGE = 'Usage: sb-index-graph <install|uninstall|update> [--scope=global|project] [--providers=cursor,claude,codex,opencode,copilot] [-y]';
 
 const opts = parseArgs(process.argv);
 try {

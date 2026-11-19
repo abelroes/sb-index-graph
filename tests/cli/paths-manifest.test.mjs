@@ -30,6 +30,20 @@ test('skillRoot copilot project under .github/skills', () => {
   );
 });
 
+test('skillRoot opencode global under ~/.config/opencode/skill', () => {
+  assert.equal(
+    skillRoot('opencode', 'global', '/repo', '/tmp/fake-home'),
+    path.join('/tmp/fake-home', '.config', 'opencode', 'skill'),
+  );
+});
+
+test('skillRoot opencode project under .opencode/skill', () => {
+  assert.equal(
+    skillRoot('opencode', 'project', '/repo', '/home'),
+    path.join('/repo', '.opencode', 'skill'),
+  );
+});
+
 test('manifest round-trip', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbig-man-'));
   const p = path.join(dir, 'sb-index-graph-install.json');
