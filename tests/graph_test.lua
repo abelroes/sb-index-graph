@@ -241,4 +241,52 @@ assert_eq(promoRoles["A"], "affinity")
 assert_eq(promoRoles["C"], "affinity", "hierarchy node promoted via shared tag")
 assert_true(promoRoles["E"] ~= nil, "promoted node expands user predicates")
 
+-- snippet cap: codepoint-safe, never splits UTF-8
+assert_eq(graph.truncateUtf8("açãoé", 3), "açã…")
+assert_eq(graph.truncateUtf8("abc", 5), "abc")
+assert_eq(graph.truncateUtf8(string.rep("x", 300), 160), string.rep("x", 160) .. "…")
+
+-- node budget: ranked retention, deterministic drops
+local budget = { pages = { { name = "S", tags = { "page", "k" } } }, edges = {} }
+for i = 1, 50 do
+  local name = string.format("P%03d", i)
+  budget.pages[#budget.pages + 1] = { name = name, tags = { "page", "k" } }
+  budget.edges[#budget.edges + 1] = { from = "S", to = name, kind = "mention", toTag = "page", page = "S", snippet = "[[" .. name .. "]]" }
+end
+local db = graph.digest("S", budget.pages, budget.edges, { maxNodes = 10 })
+assert_true(db.ok)
+assert_eq(#db.nodes, 10, "maxNodes respected (seed counted)")
+assert_true(db.truncated, "truncated flag set")
+assert_eq(#db.dropped, 41)
+assert_eq(db.dropped[1].ref, "P010", "drops listed in rank order")
+assert_eq(db.dropped[#db.dropped].ref, "P050", "worst rank listed last")
+assert_eq(db.dropped[1].reason, "node_budget")
+local keptRefs = {}
+for _, n in ipairs(db.nodes) do keptRefs[n.ref] = true end
+assert_true(keptRefs["S"] and keptRefs["P001"], "seed + best affinity kept")
+assert_true(keptRefs["P050"] == nil)
+
+-- token budget: approximate (chars/4), drops worst non-seed first
+local dbT = graph.digest("S", budget.pages, budget.edges, { maxNodes = 60, maxTokens = 100 })
+assert_true(dbT.ok and dbT.truncated)
+local sawTokenBudget = false
+for _, d in ipairs(dbT.dropped) do
+  if d.reason == "token_budget" then sawTokenBudget = true end
+end
+assert_true(sawTokenBudget, "token_budget drops reported")
+
+-- snippets in digest edges are capped
+local capFx = {
+  pages = {
+    { name = "A", tags = { "page", "t" } },
+    { name = "B", tags = { "page", "t" } },
+  },
+  edges = {
+    { from = "A", to = "B", kind = "mention", toTag = "page", page = "A", snippet = string.rep("y", 300) },
+  },
+}
+local dcap = graph.digest("A", capFx.pages, capFx.edges)
+assert_eq(dcap.ok, true)
+assert_eq(#dcap.edges[1].snippet, 160 + #"…", "snippet capped at 160 codepoints + ellipsis")
+
 print("OK digest")

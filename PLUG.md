@@ -310,6 +310,24 @@ function graph.resolveAnchor(anchor, pages)
   return { ok = false, error = "ambiguous", candidates = subs }
 end
 
+-- Codepoint-safe truncation (LuaJIT-safe: no utf8 lib; never splits UTF-8).
+function graph.truncateUtf8(s, maxChars)
+  if type(s) ~= "string" then return s end
+  if not maxChars or maxChars <= 0 then return s end
+  local n = #s
+  local i, count = 1, 0
+  while i <= n and count < maxChars do
+    local b = s:byte(i)
+    if b < 0x80 then i = i + 1
+    elseif b < 0xE0 then i = i + 2
+    elseif b < 0xF0 then i = i + 3
+    else i = i + 4 end
+    count = count + 1
+  end
+  if i > n then return s end
+  return s:sub(1, i - 1) .. "…"
+end
+
 -- Digest = fixed point of affinity admission from the resolved anchor(s).
 -- Affinity nodes contribute their user tags and widen the affinity set.
 -- `related` edges (hub frontmatter hierarchy) admit the other endpoint as a
@@ -390,12 +408,114 @@ function graph.digest(anchor, pages, edges, opts)
     end
   end
 
-  -- Evidence = induced subgraph edges; undirected kinds dedupe by unordered
-  -- endpoints+kind, directed kinds by ordered from→to+kind.
+  -- Budget (strata-style slices): rank nodes, keep seeds always, then
+  -- affinity (overlap with seed tags, degree), then hierarchy (related depth,
+  -- degree). maxNodes default 40; maxTokens is an approximation (chars/4),
+  -- never an exact count. Truncation is explicit: truncated + dropped.
+  opts = opts or {}
+  local maxNodes = opts.maxNodes
+  if maxNodes == nil then maxNodes = 40 end
+  local maxTokens = opts.maxTokens
+  local snippetCap = opts.snippetCap
+  if snippetCap == nil then snippetCap = 160 end
+
+  local seedTags = {}
+  for _, name in ipairs(seeds) do
+    local p = byName[name]
+    if p then mergeTags(seedTags, p.tags) end
+  end
+  local degree = {}
+  for _, e in ipairs(filtered) do
+    if e.from ~= e.to and included[e.from] and included[e.to] then
+      degree[e.from] = (degree[e.from] or 0) + 1
+      degree[e.to] = (degree[e.to] or 0) + 1
+    end
+  end
+  local function tierOf(name)
+    local r = role[name]
+    if r == "seed" then return 0 end
+    if r == "affinity" then return 1 end
+    return 2
+  end
+  local function overlapWithSeeds(name)
+    local n = 0
+    for t in pairs(graph.userTags(byName[name] and byName[name].tags)) do
+      if seedTags[t] then n = n + 1 end
+    end
+    return n
+  end
+  local ranked = {}
+  for name in pairs(included) do ranked[#ranked + 1] = name end
+  table.sort(ranked, function(a, b)
+    local ta, tb = tierOf(a), tierOf(b)
+    if ta ~= tb then return ta < tb end
+    if ta == 1 then
+      local oa, ob = overlapWithSeeds(a), overlapWithSeeds(b)
+      if oa ~= ob then return oa > ob end
+    elseif ta == 2 then
+      local da, db = relDist[a] or 0, relDist[b] or 0
+      if da ~= db then return da < db end
+    end
+    local ga, gb = degree[a] or 0, degree[b] or 0
+    if ga ~= gb then return ga > gb end
+    return a < b
+  end)
+
+  local kept = {}
+  local keptCount = 0
+  local dropped = {}
+  for _, name in ipairs(ranked) do
+    if tierOf(name) == 0 then
+      kept[name] = true
+      keptCount = keptCount + 1
+    elseif keptCount >= maxNodes then
+      dropped[#dropped + 1] = { ref = name, reason = "node_budget" }
+    else
+      kept[name] = true
+      keptCount = keptCount + 1
+    end
+  end
+
+  local function nodeChars(name)
+    local p = byName[name]
+    local c = #name + 8
+    for t in pairs(graph.userTags(p and p.tags)) do c = c + #t + 2 end
+    return c
+  end
+  local function approxTokens()
+    local chars = 0
+    for name in pairs(kept) do chars = chars + nodeChars(name) end
+    local seenT = {}
+    for _, e in ipairs(filtered) do
+      if e.from ~= e.to and kept[e.from] and kept[e.to] then
+        local key = evidenceKey(e)
+        if not seenT[key] then
+          seenT[key] = true
+          chars = chars + #e.from + #e.to + #tostring(e.kind) + #tostring(e.snippet) + 12
+        end
+      end
+    end
+    return math.ceil(chars / 4)
+  end
+  if maxTokens then
+    while approxTokens() > maxTokens do
+      local victim = nil
+      for i = #ranked, 1, -1 do
+        local name = ranked[i]
+        if kept[name] and tierOf(name) > 0 then victim = name break end
+      end
+      if not victim then break end
+      kept[victim] = nil
+      dropped[#dropped + 1] = { ref = victim, reason = "token_budget" }
+    end
+  end
+
+  -- Evidence = induced subgraph edges over kept nodes; undirected kinds dedupe
+  -- by unordered endpoints+kind, directed kinds by ordered from→to+kind.
   local usedEdges = {}
   local seen = {}
   for _, e in ipairs(filtered) do
-    if e.from ~= e.to and included[e.from] and included[e.to] then
+    if e.from ~= e.to and kept[e.from] and kept[e.to] then
       local key = evidenceKey(e)
       if not seen[key] then
         seen[key] = true
@@ -403,7 +523,7 @@ function graph.digest(anchor, pages, edges, opts)
           from = e.from,
           to = e.to,
           kind = e.kind,
-          snippet = e.snippet,
+          snippet = graph.truncateUtf8(e.snippet, snippetCap),
           page = e.page,
         }
       end
@@ -418,7 +538,7 @@ function graph.digest(anchor, pages, edges, opts)
   end)
 
   local nodes = {}
-  for name in pairs(included) do
+  for name in pairs(kept) do
     local p = byName[name]
     local tags = {}
     for t in pairs(graph.userTags(p and p.tags)) do tags[#tags + 1] = t end
@@ -427,6 +547,8 @@ function graph.digest(anchor, pages, edges, opts)
   end
   table.sort(nodes, function(a, b) return a.ref < b.ref end)
 
+  -- Admission set, not union of kept tags: hierarchy tags never widened it,
+  -- so it stays the explanation of *why* the closure looks like this.
   local affinityTags = {}
   for t in pairs(affinity) do affinityTags[#affinityTags + 1] = t end
   table.sort(affinityTags)
@@ -442,6 +564,8 @@ function graph.digest(anchor, pages, edges, opts)
     nodes = nodes,
     edges = usedEdges,
     affinityTags = affinityTags,
+    truncated = #dropped > 0 or nil,
+    dropped = #dropped > 0 and dropped or nil,
   }
 end
 
