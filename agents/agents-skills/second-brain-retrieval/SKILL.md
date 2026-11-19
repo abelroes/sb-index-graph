@@ -2,7 +2,7 @@
 name: second-brain-retrieval
 description: >-
   Use when retrieving a closed subgraph from SilverBullet via indexGraph
-  (digest/path/neighbors); on session boot from second-brain / the
+  (digest/path/neighbors/manifest); on session boot from second-brain / the
   sb-index-graph hook; when answering from SB notes after the second-brain
   manager hands off; when finding how notes connect; or when tempted to
   approximate indexGraph with bulk search/read after it failed.
@@ -46,11 +46,17 @@ The Space Lua library remains `sb-index-graph` (`indexGraph.*`). `/second-brain`
 2. Default: `indexGraph.digest(anchor)` (page name, tag, or substring). Use `path(a,b)` for connections; `neighbors(page)` for local context.
 3. `ok == false` + `ambiguous` → disambiguate with the user (or a clearer anchor). **Do not** guess one candidate. **Do not** digest every candidate and merge to avoid asking.
 4. `ok == false` + `index_unavailable` (or lua/runtime failed) → report that graph retrieval is unavailable; continue non-SB work if any. **Do not** label search/read results as an `indexGraph` digest.
-5. Evidence from a successful digest = `nodes` / `edges` / `affinityTags` / snippets. MCP `read` only for a specific node when snippets are insufficient.
-6. Persistence of new learnings → use **managing-learnings** (do not invent storage here).
+5. Evidence from a successful digest = `nodes` / `edges` / `affinityTags` / snippets (`role` flags hub-hierarchy evidence).
+6. `truncated` + `dropped` → the closure hit its budget: refine the anchor, or raise `maxNodes`/`maxTokens` consciously. **Do not** patch dropped nodes with bulk reads.
+7. Before a full MCP `read` of a large page (~>10 KB), get `indexGraph.manifest(page)` and target a section; `read` only when snippets/manifest are insufficient.
+8. Persistence of new learnings → use **managing-learnings** (do not invent storage here).
 
 ```lua
 indexGraph.digest("error-handling")
+```
+
+```lua
+indexGraph.manifest("Some Big Page") -- outline before a large read
 ```
 
 ## Rationalizations
@@ -62,6 +68,7 @@ indexGraph.digest("error-handling")
 | "Pure codebase — skip boot / manual invoke" | Session boot and retrieval handoffs still require digest (or report graph unavailable). |
 | "Skill not loaded so search instead" | Missing skill ≠ permission to present search hits as `indexGraph` output. |
 | "Default Superpowers path is fine" | Digest preferences override; ask if unclear. |
+| "Digest was truncated — just read the pages" | Truncation is an anchor/budget decision point; refine the anchor or use `manifest` — bulk `read` re-inflates what the budget saved. |
 
 ## Red flags — STOP
 
@@ -70,4 +77,5 @@ indexGraph.digest("error-handling")
 - Skipping session boot or an explicit retrieval handoff during coding
 - Hardcoding a personal projects folder tree into writes
 - Writing Superpowers artifacts to the repo default when the digest named another home
+- Silently bulk-reading to "fill in" `truncated` / `dropped`
 - Writing aprendizados pages without **managing-learnings** config

@@ -27,9 +27,10 @@ Retrieve a semantically closed subgraph via `indexGraph` before reading pages.
 1. Call `indexGraph.digest(anchor)` (page name, user tag, or substring).
 2. `ambiguous` → clarify with the user or a clearer anchor; do **not** guess; do **not** digest every candidate and merge.
 3. `index_unavailable` or runtime failed → report unavailable; stop.
-4. Use `nodes`, `edges`, `affinityTags`, and snippets as primary evidence.
+4. Use `nodes`, `edges`, `affinityTags`, and snippets as primary evidence (`role` flags hub-hierarchy evidence).
 5. `indexGraph.path(a, b)` for connection questions; `indexGraph.neighbors(page)` for local context.
-6. MCP `read` only for a specific node when snippets are insufficient.
+6. `truncated` + `dropped` → refine the anchor or raise `maxNodes`/`maxTokens` consciously; never bulk-`read` to patch it.
+7. Prefer `indexGraph.manifest(page)` (section outline) before a full `read` of a large page (~>10 KB); MCP `read` only for a specific node when snippets/manifest are insufficient.
 7. Persisting new learnings is **not** defined here — agree storage/types with the user (always-on skill `managing-learnings` outside SB) before writing. Outside SB, the retrieval skill is named `second-brain-retrieval`; `/second-brain` is the thin manager.
 
 ```lua
