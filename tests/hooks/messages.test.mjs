@@ -63,6 +63,13 @@ test('extractAnchors collects page links, tags, and digest anchors', () => {
   assert.deepEqual(anchors, ['Notes/Jwt', 'Notes/Empty', '#aprendizado', '#second-brain', 'error-handling']);
 });
 
+test('digest anchors survive the JSON form of the transcript', () => {
+  // The scan runs on `JSON.stringify(messages)`, so the call arrives with the
+  // quotes escaped; an anchor regex that ignores `\\"` finds nothing at all.
+  const anchors = extractAnchors([{ text: 'indexGraph.digest("jwt-refresh") devolveu 12 nós' }]);
+  assert.deepEqual(anchors, ['jwt-refresh']);
+});
+
 test('anchor scan skips injected skill bodies and the trigger text itself', () => {
   const noise = [SESSION, PRECOMPACT];
   const anchors = extractAnchors(
