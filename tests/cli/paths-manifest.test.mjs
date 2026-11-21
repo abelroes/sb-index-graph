@@ -3,7 +3,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { skillRoot, manifestPath, writeManifest, readManifest, SKILL_NAMES } from '../../cli/paths.mjs';
+import {
+  skillRoot,
+  legacySkillRoot,
+  opencodePluginsDir,
+  manifestPath,
+  writeManifest,
+  readManifest,
+  SKILL_NAMES,
+  DEFAULT_PROVIDERS,
+} from '../../cli/paths.mjs';
 // re-export manifest helpers from paths or import from manifest.mjs — keep one import surface in test
 
 test('SKILL_NAMES has four skills', () => {
@@ -30,18 +39,45 @@ test('skillRoot copilot project under .github/skills', () => {
   );
 });
 
-test('skillRoot opencode global under ~/.config/opencode/skill', () => {
+test('skillRoot opencode global under ~/.config/opencode/skills (V2 plural)', () => {
   assert.equal(
     skillRoot('opencode', 'global', '/repo', '/tmp/fake-home'),
-    path.join('/tmp/fake-home', '.config', 'opencode', 'skill'),
+    path.join('/tmp/fake-home', '.config', 'opencode', 'skills'),
   );
 });
 
-test('skillRoot opencode project under .opencode/skill', () => {
+test('skillRoot opencode project under .opencode/skills', () => {
   assert.equal(
     skillRoot('opencode', 'project', '/repo', '/home'),
+    path.join('/repo', '.opencode', 'skills'),
+  );
+});
+
+test('legacySkillRoot points at the V1 singular dir for opencode only', () => {
+  assert.equal(
+    legacySkillRoot('opencode', 'global', '/repo', '/tmp/fake-home'),
+    path.join('/tmp/fake-home', '.config', 'opencode', 'skill'),
+  );
+  assert.equal(
+    legacySkillRoot('opencode', 'project', '/repo', '/home'),
     path.join('/repo', '.opencode', 'skill'),
   );
+  assert.equal(legacySkillRoot('cursor', 'global', '/repo', '/home'), null);
+});
+
+test('opencodePluginsDir is where OpenCode auto-loads plugins', () => {
+  assert.equal(
+    opencodePluginsDir('global', '/repo', '/tmp/fake-home'),
+    path.join('/tmp/fake-home', '.config', 'opencode', 'plugins'),
+  );
+  assert.equal(
+    opencodePluginsDir('project', '/repo', '/home'),
+    path.join('/repo', '.opencode', 'plugins'),
+  );
+});
+
+test('opencode is a default provider', () => {
+  assert.deepEqual(DEFAULT_PROVIDERS, ['cursor', 'claude', 'codex', 'opencode']);
 });
 
 test('manifest round-trip', () => {

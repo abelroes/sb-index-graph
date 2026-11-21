@@ -278,3 +278,9 @@ Observed B / B. No new violating rationalization. Cite-before-persist section le
 
 - CLI: `npm test` (paths, skills copy, hooks merge, install/uninstall, hook responseFor).
 - Manual: `node cli/bin.mjs install -y --scope=project --providers=cursor` then check `.cursor/hooks.json` contains `sb-index-graph` and Hooks output channel shows sessionStart.
+
+## 2026-11-20 opencode triggers
+
+- CLI: `npm test` (49 tests: plugin handlers with a fake ctx, sidecar generation, flat-file guard, V2 plural skill roots, legacy pruning, no-drift between plugin copy and `hooks/lib/messages.mjs`).
+- Live (throwaway server, isolated `OPENCODE_CONFIG_DIR`, OpenCode 2.3.2, recipe in README): plugin auto-loaded from `<config>/plugins/sb-index-graph.js`; first prompt created the instruction entry `second-brain` (`routing: true`); the prompt response carried `skills:[{id:"managing-learnings"}]`; after `compact` the entry `second-brain-anchors` held `["Notes/Retries","#aprendizado"]` with the injected skill body excluded. Server log: `attached managing-learnings to the prompt in <id>`, `kept 2 second-brain anchors`.
+- Found by the live run: `ctx.skill.list()` returns `{ location, data: [...] }`, not `{ skills: [...] }` — the original gate silently attached nothing. Fixed by accepting all three envelopes; the unit tests now cover each shape.

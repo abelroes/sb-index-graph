@@ -1,6 +1,6 @@
 {
   "name": "sb-index-graph",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "SilverBullet indexGraph library helpers and second-brain agent skills installer",
   "type": "module",
   "bin": {
@@ -10,11 +10,12 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test tests/cli/*.test.mjs tests/hooks/*.test.mjs"
+    "test": "node --test tests/cli/*.test.mjs tests/hooks/*.test.mjs tests/opencode/*.test.mjs"
   },
   "files": [
     "cli",
     "hooks",
+    "plugins",
     "skills",
     "README.md",
     "PLUG.md",

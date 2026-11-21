@@ -1,6 +1,6 @@
 import os from 'node:os';
 import { readManifest } from './manifest.mjs';
-import { manifestPath } from './paths.mjs';
+import { manifestPath, DEFAULT_PROVIDERS } from './paths.mjs';
 import { runInstall } from './install.mjs';
 
 export async function runUpdate(opts) {
@@ -11,7 +11,7 @@ export async function runUpdate(opts) {
   return runInstall({
     ...opts,
     scope: opts.scope || man?.scope || 'global',
-    providers: opts.providers || man?.providers || ['cursor', 'claude', 'codex'],
+    providers: opts.providers || man?.providers || DEFAULT_PROVIDERS,
     yes: true,
   });
 }

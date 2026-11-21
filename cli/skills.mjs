@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SKILL_NAMES } from './constants.mjs';
-import { skillRoot } from './paths.mjs';
+import { skillRoot, legacySkillRoot } from './paths.mjs';
 
 export function packageRoot() {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -26,6 +26,7 @@ export function installSkills({ providers, scope, cwd, home, sourceRoot = packag
       copyDir(src, dest);
       installed.push({ provider, name, dest });
     }
+    pruneLegacy(provider, scope, cwd, home);
   }
   return { installed };
 }
@@ -43,6 +44,27 @@ export function removeSkills({ providers, scope, cwd, home, names = SKILL_NAMES 
         removed.push(dest);
       }
     }
+    removed.push(...pruneLegacy(provider, scope, cwd, home, targets));
   }
   return { removed };
+}
+
+/**
+ * Drops skills left in a provider's pre-V2 directory (OpenCode wrote them under
+ * `skill/` singular). Runs on install and uninstall so an upgrade migrates the
+ * tree and a remove leaves nothing ignored behind.
+ */
+export function pruneLegacy(provider, scope, cwd, home, names = SKILL_NAMES) {
+  const root = legacySkillRoot(provider, scope, cwd, home);
+  if (!root || !fs.existsSync(root)) return [];
+  const allow = new Set(SKILL_NAMES);
+  const removed = [];
+  for (const name of names.filter((entry) => allow.has(entry))) {
+    const dest = path.join(root, name);
+    if (!fs.existsSync(dest)) continue;
+    fs.rmSync(dest, { recursive: true, force: true });
+    removed.push(dest);
+  }
+  if (fs.existsSync(root) && fs.readdirSync(root).length === 0) fs.rmdirSync(root);
+  return removed;
 }
